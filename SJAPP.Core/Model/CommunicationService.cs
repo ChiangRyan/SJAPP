@@ -14,7 +14,7 @@ namespace SJAPP.Core.Model
         {
             client = new HttpClient
             {
-                Timeout = TimeSpan.FromSeconds(2) // 設置 5 秒超時
+                Timeout = TimeSpan.FromSeconds(5) // 設置 5 秒超時
             };
         }
 
@@ -51,11 +51,11 @@ namespace SJAPP.Core.Model
             }
         }
 
-        public async Task<string> WriteModbusAsync(string ip, int slaveId, int address, int value)
+        public async Task<string> WriteModbusAsync(string ip, int slaveId, int address, int value, int functionCode)
         {
             try
             {
-                string url = $"http://{ip}/writeModbus?slaveId={slaveId}&address={address}&value={value}";
+                string url = $"http://{ip}/writeModbus?slaveId={slaveId}&address={address}&value={value}&functionCode={functionCode}";
                 HttpResponseMessage response = await client.GetAsync(url);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsStringAsync();

@@ -8,7 +8,7 @@ namespace SJAPP.Core.Services.Communication
     {
 
         Task<ModbusReadResult> ReadModbusAsync(string ip, int slaveId, int address, int quantity, int functionCode);
-        Task<string> WriteModbusAsync(string ip, int slaveId, int address, int value);
+        Task<string> WriteModbusAsync(string ip, int slaveId, int address, int value, int functionCode);
         Task<string> SendLedCommandAsync(string ip, string state);
         void CleanupConnections();
     }

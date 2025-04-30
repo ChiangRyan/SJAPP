@@ -41,7 +41,7 @@ namespace SJAPP.Core.ViewModel
                 }
                 else if (i == 10)
                 {
-                    ipAddress = "192.168.64.88";
+                    ipAddress = "192.168.64.74";
                     slaveId = 1;
                 }
                 else
@@ -183,7 +183,7 @@ namespace SJAPP.Core.ViewModel
             {
                 _updateTimer.Stop();
                 System.Diagnostics.Debug.WriteLine("Update timer stopped for ExecuteStart.");
-                await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 1);
+                await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 1,6);
                 await UpdateDeviceData();
             }
             catch (Exception ex)
@@ -212,7 +212,7 @@ namespace SJAPP.Core.ViewModel
             {
                 _updateTimer.Stop();
                 System.Diagnostics.Debug.WriteLine("Update timer stopped for ExecuteStop.");
-                await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 0);
+                await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 0, 6);
                 await UpdateDeviceData();
             }
             catch (Exception ex)

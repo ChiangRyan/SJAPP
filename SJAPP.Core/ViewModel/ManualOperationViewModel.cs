@@ -23,6 +23,7 @@ namespace SJAPP.Core.ViewModel
         public int ReadAddress { get; set; } = 0;
         public int ReadQuantity { get; set; } = 2;
         public int ReadFunctionCode { get; set; } = 3; // 預設功能碼
+        public int WriteFunctionCode { get; set; } = 6; // 預設功能碼
         public int WriteSlaveId { get; set; } = 1;
         public int WriteAddress { get; set; } = 0;
         public int WriteValue { get; set; } = 100;
@@ -131,7 +132,7 @@ namespace SJAPP.Core.ViewModel
 
             try
             {
-                string response = await _communicationService.WriteModbusAsync(IpAddress, WriteSlaveId, WriteAddress, WriteValue);
+                string response = await _communicationService.WriteModbusAsync(IpAddress, WriteSlaveId, WriteAddress, WriteValue, WriteFunctionCode);
                 StatusText = $"[{DateTime.Now}] Modbus 寫入回應: {response}\n" + StatusText;
             }
             catch (Exception ex)
