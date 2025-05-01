@@ -16,9 +16,9 @@ namespace SJAPP.Core.ViewModel
         private readonly ICommunicationService _communicationService;
         private readonly SqliteDataService _dataService;
         private readonly Timer _updateTimer;
-        private readonly int _runCountAddress = 7010;
-        private readonly int _statusAddress = 7001;
-        private readonly int _controlAddress = 7000;
+        private readonly int _runCountAddress = 10;
+        private readonly int _statusAddress = 1;
+        private readonly int _controlAddress = 0;
 
         public ObservableCollection<DeviceModel> Devices { get; set; }
 
@@ -36,12 +36,12 @@ namespace SJAPP.Core.ViewModel
                 int slaveId;
                 if (i < 10)
                 {
-                    ipAddress = "192.168.64.87";
+                    ipAddress = "192.168.64.52";
                     slaveId = i + 1;
                 }
                 else if (i == 10)
                 {
-                    ipAddress = "192.168.64.74";
+                    ipAddress = "192.168.64.87";
                     slaveId = 1;
                 }
                 else

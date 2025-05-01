@@ -35,5 +35,4 @@ C:\Users\user1\Desktop\展機機聯網\SJAPP\SJAPP.Core\obj\Debug\SJAPP.Core.csp
 C:\Users\user1\Desktop\展機機聯網\SJAPP\SJAPP.Core\obj\Debug\SJAPP.Core.csproj.Up2Date
 C:\Users\user1\Desktop\展機機聯網\SJAPP\SJAPP.Core\obj\Debug\SJAPP.Core.dll
 C:\Users\user1\Desktop\展機機聯網\SJAPP\SJAPP.Core\obj\Debug\SJAPP.Core.pdb
-C:\Users\user1\Desktop\展機機聯網\SJAPP\SJAPP.Core\obj\Debug\SJAPP.Core.csproj.Fody.CopyLocal.cache
-C:\Users\user1\Desktop\展機機聯網\SJAPP\SJAPP.Core\obj\Debug\SJAPP.Core.csproj.Fody.RuntimeCopyLocal.cache
+C:\Users\user1\Desktop\展機機聯網\SJAPP\SJAPP.Core\bin\Debug\PropertyChanged.dll
