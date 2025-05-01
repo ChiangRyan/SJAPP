@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:vm="clr-namespace:SJAPP.Core.ViewModel;assembly=SJAPP.Core"
       mc:Ignorable="d"
       Title="Home" d:DesignHeight="450" d:DesignWidth="800"
       KeepAlive="True">
@@ -21,8 +22,8 @@
         <Style x:Key="MyButtonStyle" TargetType="Button">
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Width" Value="70"/>
-            <Setter Property="Height" Value="35"/>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="70"/>
             <Setter Property="Margin" Value="5,0,5,0"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="DarkSlateGray"/>

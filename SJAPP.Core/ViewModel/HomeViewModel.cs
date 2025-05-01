@@ -27,8 +27,16 @@ namespace SJAPP.Core.ViewModel
             _communicationService = communicationService;
             _dataService = dataService;
 
+            // 檢查並設置資料庫路徑
+            string nasPath = @"\\192.168.88.3\電控工程課\107_姜集翔\SJAPP\SJ_data.db";
+            if (!_dataService.IsPathAccessible(nasPath))
+            {
+                System.Diagnostics.Debug.WriteLine($"NAS path {nasPath} is not accessible. Using local path.");
+                _dataService.SetDatabasePath("SJ_data.db");
+            }
+
             Devices = new ObservableCollection<DeviceModel>();
-            var deviceData = _dataService.GetDeviceData();
+            var deviceData = _dataService.GetDeviceData(); // 獲取所有設備數據
 
             for (int i = 0; i < 12; i++)
             {
@@ -51,7 +59,7 @@ namespace SJAPP.Core.ViewModel
                 }
 
                 string name = $"設備 {i + 1}";
-                bool isOperational = true;
+                bool isOperational = false;
                 int runCount = 0;
                 if (i < deviceData.Count)
                 {
@@ -80,9 +88,11 @@ namespace SJAPP.Core.ViewModel
                     Status = "未知",
                     IsOperational = isOperational
                 };
+
                 int deviceIndex = i;
                 device.StartCommand = new RelayCommand(async () => await ExecuteStart(deviceIndex));
                 device.StopCommand = new RelayCommand(async () => await ExecuteStop(deviceIndex));
+
                 device.DataChanged += (sender, e) => DeviceDataChanged(deviceIndex, e.Name, e.IpAddress, e.SlaveId, e.IsOperational, e.RunCount);
 
                 Devices.Add(device);
@@ -183,7 +193,7 @@ namespace SJAPP.Core.ViewModel
             {
                 _updateTimer.Stop();
                 System.Diagnostics.Debug.WriteLine("Update timer stopped for ExecuteStart.");
-                await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 1,6);
+                await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 1, 6);
                 await UpdateDeviceData();
             }
             catch (Exception ex)
