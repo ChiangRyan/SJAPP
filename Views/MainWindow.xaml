@@ -3,19 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SJAPP.Core.ViewModel;assembly=SJAPP.Core"
+        xmlns:converters="clr-namespace:SJAPP.Core.Tool.Converters;assembly=SJAPP.Core"
         mc:Ignorable="d"
         WindowStartupLocation="Manual"
         Left="0"  
         Top="0"    
-        Title="SanJetMotion" 
-        Height="1080" 
+        Height="1080"
         Width="1920"
-        WindowStyle="None"  
+        Title="SanJetMotion" 
+        WindowStyle="SingleBorderWindow"  
         WindowState="Maximized">
 
     <Window.Resources>
-        <!-- 定義背景圖片 -->
-        <ImageBrush x:Key="BackgroundImage" ImageSource="pack://application:,,,/Images/background.png" Stretch="Fill"/>
+        <ImageBrush x:Key="BackgroundImage" ImageSource="pack://application:,,,/Images/background.png" Stretch="UniformToFill"/>
+        <!-- 引用轉換器 -->
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
     </Window.Resources>
 
     <Grid Background="{StaticResource BackgroundImage}">
@@ -27,43 +31,60 @@
         </Grid.RowDefinitions>
 
         <!-- 工具欄 -->
-        <Border Grid.Row="0"  BorderBrush="#555555" BorderThickness="1">
+        <Border Grid.Row="0" 
+                BorderBrush="#555555" 
+                BorderThickness="0,0,0,1" 
+                CornerRadius="25">
             <Border.Background>
-                <ImageBrush ImageSource="pack://application:,,,/Images/Borderbackground.png"/>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.AppWorkspaceColorKey}}"/>
             </Border.Background>
-            
-            <Grid>
+
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <!-- 左側按鈕區域 -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- 右側按鈕區域 -->
+                </Grid.ColumnDefinitions>
+
                 <!-- 左側按鈕 -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <StackPanel.Resources>
-                        <!-- 定義工具列按鈕的樣式，使用 RadioButtonStyle -->
+                <Grid Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 空白區域 -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 首頁 -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 手動操作 -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 顯示器 -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 警告 -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- 設置 -->
+                    </Grid.ColumnDefinitions>
+                    <Grid.Resources>
                         <Style x:Key="ToolBarRadioButtonStyle" TargetType="RadioButton">
-                            <Setter Property="Width" Value="160"/>
-                            <Setter Property="Height" Value="100"/>
+                            <Setter Property="MinWidth" Value="120"/>
+                            <Setter Property="MinHeight" Value="80"/>
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="RadioButton">
                                         <Border x:Name="border" 
-                                            Background="{TemplateBinding Background}"
-                                            CornerRadius="20">
-                                            <ContentPresenter/>
+                                                Background="{TemplateBinding Background}"
+                                                CornerRadius="20">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <ControlTemplate.Triggers>
-                                            <!-- 當按鈕處於選中狀態時，改變背景顏色 -->
                                             <Trigger Property="IsChecked" Value="True">
                                                 <Setter TargetName="border" Property="Background" Value="#FF8C00"/>
                                             </Trigger>
-                                            <!-- 懸停效果 -->
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="border" 
-                                                Property="Background" 
-                                                Value="Gray"/>
+                                                <Setter TargetName="border" Property="Background" Value="#666666"/>
                                             </Trigger>
-                                            <!-- 按壓效果 -->
                                             <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="border" 
-                                                Property="RenderTransform">
+                                                <Setter TargetName="border" Property="RenderTransform">
                                                     <Setter.Value>
                                                         <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
                                                     </Setter.Value>
@@ -74,57 +95,51 @@
                                 </Setter.Value>
                             </Setter>
                         </Style>
-                    </StackPanel.Resources>
-                    <RadioButton x:Name="HomeButton" GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="首頁" Checked="HomeButton_Checked" Margin="152,2,0,2">
-                        <Path Fill="WhiteSmoke" Stretch="Fill" Width="110" Height="85"
-                            Stroke="Transparent"
-                            Data="M 72,83.4219 C 72,58.843795 72,58.843795 68.667743,58.421899 64.653106,57.913606 103.35579,26.666668 108,26.666668 c 4.61444,0 43.34929,31.246449 39.362,31.75236 -3.30251,0.419026 -3.30251,0.419026 -3.66559,24.666668 -0.36308,24.247644 -0.36308,24.247644 -10.24559,24.643744 -12.06194,0.48346 -12.07052,0.47294 -12.09707,-14.832001 -0.0248,-14.27798 -3.52501,-19.564103 -12.95451,-19.564103 -10.60987,0 -15.065907,7.085804 -15.065907,23.957176 C 93.333333,108 93.333333,108 82.666667,108 72,108 72,108 72,83.4219 Z"/>
+                    </Grid.Resources>
+                    <RadioButton Grid.Column="1" x:Name="HomeButton" GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="首頁" Checked="HomeButton_Checked" Margin="5" Visibility="{Binding CanViewHome, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Path Fill="White" Stretch="Fill" Width="60" Height="60" Stroke="Transparent" Data="M 72,83.4219 C 72,58.843795 72,58.843795 68.667743,58.421899 64.653106,57.913606 103.35579,26.666668 108,26.666668 c 4.61444,0 43.34929,31.246449 39.362,31.75236 -3.30251,0.419026 -3.30251,0.419026 -3.66559,24.666668 -0.36308,24.247644 -0.36308,24.247644 -10.24559,24.643744 -12.06194,0.48346 -12.07052,0.47294 -12.09707,-14.832001 -0.0248,-14.27798 -3.52501,-19.564103 -12.95451,-19.564103 -10.60987,0 -15.065907,7.085804 -15.065907,23.957176 C 93.333333,108 93.333333,108 82.666667,108 72,108 72,108 72,83.4219 Z"/>
                     </RadioButton>
-                    <RadioButton GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="手動操作" Checked="ManualOperationButton_Checked" Margin="13,2,0,2">
-                        <Path Fill="WhiteSmoke" Stretch="Fill" Width="90" Height="85"
-                            Stroke="Transparent"
-                            Data="m 111,244.74814 v -11.25186 l -9.5594,-10.4043 C 86.432601,206.75751 83.890882,202.3791 76.538702,180.19554 68.442726,155.76774 78.889151,140.51165 97.288558,149.8922 L 101,151.7844 V 113.20793 C 101,64.258966 102.35502,60.5 120,60.5 c 15.24731,0 19,6.355289 19,32.177052 v 18.045608 l 2.33052,-0.44551 c 3.75258,-0.71735 9.86588,1.42276 14.1346,4.94817 3.53651,2.9207 4.52285,3.23855 9.12468,2.94042 8.32441,-0.5393 17.61673,5.66911 19.04425,12.72388 0.489,2.4166 0.93275,2.61647 5.97768,2.69243 14.85045,0.22359 17.79754,6.57679 18.20121,39.23743 l 0.31294,25.31948 -10.06294,17.84673 L 188,233.83243 V 244.91621 256 H 149.5 111 Z M 79.435988,130.60767 C 31.237172,98.148695 41.823847,22.182475 97.147771,3.5142186 157.11421,-16.720588 211.9551,45.211979 185.02656,102.75694 l -2.96131,6.32816 -3.08639,-1.59603 c -1.69751,-0.87782 -5.42469,-1.83498 -8.28262,-2.12702 -8.10111,-0.82783 -8.05021,-0.75673 -4.57999,-6.39656 C 182.1806,72.857592 171.50063,36.805862 143.80853,23.662706 90.291112,-1.7376006 41.082182,65.007837 81.633741,107.99463 L 88,114.7432 v 9.6284 c 0,11.32252 -0.485794,11.67626 -8.564012,6.23607 z M 152.03327,83.428139 C 151.98878,68.623648 150.4873,64.333114 142.57861,56.411263 120.39275,34.188453 88.050981,49.933175 87.961785,83 l -0.02832,10.5 -1.957506,-2.349393 C 72.02977,74.412444 85.066752,41.005691 108.33596,33.853987 142.464,23.364859 175.856,65.940844 154.04106,92.129599 L 152.06654,94.5 Z"/>
-                            
+                    <RadioButton Grid.Column="2" GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="手動操作" Checked="ManualOperationButton_Checked" Margin="5" Visibility="{Binding CanViewManualOperation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Path Fill="White" Stretch="Fill" Width="60" Height="60" Stroke="Transparent" Data="m 111,244.74814 v -11.25186 l -9.5594,-10.4043 C 86.432601,206.75751 83.890882,202.3791 76.538702,180.19554 68.442726,155.76774 78.889151,140.51165 97.288558,149.8922 L 101,151.7844 V 113.20793 C 101,64.258966 102.35502,60.5 120,60.5 c 15.24731,0 19,6.355289 19,32.177052 v 18.045608 l 2.33052,-0.44551 c 3.75258,-0.71735 9.86588,1.42276 14.1346,4.94817 3.53651,2.9207 4.52285,3.23855 9.12468,2.94042 8.32441,-0.5393 17.61673,5.66911 19.04425,12.72388 0.489,2.4166 0.93275,2.61647 5.97768,2.69243 14.85045,0.22359 17.79754,6.57679 18.20121,39.23743 l 0.31294,25.31948 -10.06294,17.84673 L 188,233.83243 V 244.91621 256 H 149.5 111 Z M 79.435988,130.60767 C 31.237172,98.148695 41.823847,22.182475 97.147771,3.5142186 157.11421,-16.720588 211.9551,45.211979 185.02656,102.75694 l -2.96131,6.32816 -3.08639,-1.59603 c -1.69751,-0.87782 -5.42469,-1.83498 -8.28262,-2.12702 -8.10111,-0.82783 -8.05021,-0.75673 -4.57999,-6.39656 C 182.1806,72.857592 171.50063,36.805862 143.80853,23.662706 90.291112,-1.7376006 41.082182,65.007837 81.633741,107.99463 L 88,114.7432 v 9.6284 c 0,11.32252 -0.485794,11.67626 -8.564012,6.23607 z M 152.03327,83.428139 C 151.98878,68.623648 150.4873,64.333114 142.57861,56.411263 120.39275,34.188453 88.050981,49.933175 87.961785,83 l -0.02832,10.5 -1.957506,-2.349393 C 72.02977,74.412444 85.066752,41.005691 108.33596,33.853987 142.464,23.364859 175.856,65.940844 154.04106,92.129599 L 152.06654,94.5 Z"/>
                     </RadioButton>
-                    <RadioButton GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="顯示器" Checked="MonitorButton_Checked" Margin="14,2,0,2">
-                        <Path Fill="Gray" Stretch="Fill" Width="110" Height="85"
-                        Stroke="Transparent"
-                        Data="" HorizontalAlignment="Left"/>
+                    <RadioButton Grid.Column="3" GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="顯示器" Checked="MonitorButton_Checked" Margin="5" Visibility="{Binding CanViewMonitor, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Path Fill="White" Stretch="Fill" Width="60" Height="60" Stroke="Transparent" Data=""/>
                     </RadioButton>
+                    <RadioButton Grid.Column="4" GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="警告" Checked="WarningButton_Checked" Margin="5" Visibility="{Binding CanViewWarning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Path Fill="White" Stretch="Fill" Width="60" Height="60" Stroke="Transparent" Data=""/>
+                    </RadioButton>
+                    <RadioButton Grid.Column="5" GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="設置" Checked="SettingsButton_Checked" Margin="5" Visibility="{Binding CanViewSettings, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Path Fill="White" Stretch="Fill" Width="60" Height="60" Stroke="Transparent" Data=""/>
+                    </RadioButton>
+                </Grid>
 
-                    <RadioButton GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="警告" Checked="WarningButton_Checked" Margin="14,2,0,2">
-                        <Path Fill="Gray" Stretch="Fill" Width="110" Height="85"
-                            Stroke="Transparent"
-                            Data="" HorizontalAlignment="Left" Margin="18,2,0,2"/>
-                    </RadioButton>
-                    <RadioButton GroupName="Navigation" Style="{StaticResource ToolBarRadioButtonStyle}" ToolTip="設置" Checked="SettingsButton_Checked" Margin="12,2,0,2">
-                        <Path Fill="Gray" Stretch="Fill" Width="110" Height="85"
-                            Stroke="Transparent"
-                            Data="" HorizontalAlignment="Left" Margin="18,2,0,2"/>
-                    </RadioButton>
-                </StackPanel>
-
-                <!-- 右上角的最小化與關閉按鈕 -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,20,0">
+                <!-- 右側按鈕區域 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,20,0">
+                    <Button Content="登入" Command="{Binding ShowLoginCommand}" Width="60" Height="40" Margin="5" 
+                            Visibility="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+                    <Button Content="登出" Command="{Binding LogoutCommand}" Width="60" Height="40" Margin="5" 
+                            Visibility="{Binding IsLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    
+                    <!-- 最小化與關閉按鈕（註解取消時使用） -->
+                    <!--
                     <Button Width="40" Height="40" Background="Transparent" ToolTip="最小化" Click="MinimizeButton_Click">
                         <TextBlock Text="一" FontSize="24" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Button>
                     <Button Width="40" Height="40" Background="Transparent" ToolTip="關閉" Click="CloseButton_Click">
                         <TextBlock Text="X" FontSize="24" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Button>
+                    -->
                 </StackPanel>
             </Grid>
         </Border>
 
-
-        <!-- 主內容區域，添加 Frame -->
-        <Grid Grid.Row="1" Grid.ColumnSpan="2">
+        <!-- 主內容區域 -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="73*"/>
                 <ColumnDefinition Width="567*"/>
             </Grid.ColumnDefinitions>
-            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Grid.ColumnSpan="2"/>
+            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Grid.ColumnSpan="2" Background="Transparent"/>
         </Grid>
-
     </Grid>
 </Window>

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Timers;
 using PropertyChanged;
+using System.Linq;
 
 namespace SJAPP.Core.ViewModel
 {
@@ -27,17 +28,70 @@ namespace SJAPP.Core.ViewModel
             _communicationService = communicationService;
             _dataService = dataService;
 
-            // 檢查並設置資料庫路徑
-            string nasPath = @"\\192.168.88.3\電控工程課\107_姜集翔\SJAPP\SJ_data.db";
-            if (!_dataService.IsPathAccessible(nasPath))
-            {
-                System.Diagnostics.Debug.WriteLine($"NAS path {nasPath} is not accessible. Using local path.");
-                _dataService.SetDatabasePath("SJ_data.db");
-            }
+        
 
             Devices = new ObservableCollection<DeviceModel>();
-            var deviceData = _dataService.GetDeviceData(); // 獲取所有設備數據
 
+            // 先從資料庫載入設備數據
+            LoadDevicesFromDatabase();
+
+            // 如果資料庫中沒有設備數據，則初始化預設設備
+            if (!Devices.Any())
+            {
+                InitializeDefaultDevices();
+            }
+
+            _updateTimer = new Timer(5000);
+            _updateTimer.Elapsed += async (s, e) => await UpdateDeviceData();
+            _updateTimer.AutoReset = true;
+        }
+
+        private void LoadDevicesFromDatabase()
+        {
+            var deviceDataList = _dataService.GetDeviceData();
+            foreach (var data in deviceDataList)
+            {
+                string ipAddress;
+                int slaveId;
+                if (deviceDataList.IndexOf(data) < 10)
+                {
+                    ipAddress = "192.168.64.52";
+                    slaveId = deviceDataList.IndexOf(data) + 1;
+                }
+                else if (deviceDataList.IndexOf(data) == 10)
+                {
+                    ipAddress = "192.168.64.87";
+                    slaveId = 1;
+                }
+                else
+                {
+                    ipAddress = "192.168.64.89";
+                    slaveId = 1;
+                }
+                
+                var device = new DeviceModel
+                {
+                    Name = data.Name ?? $"設備 {deviceDataList.IndexOf(data) + 1}", // 使用資料庫名稱，無則用預設
+                    IpAddress = data.IpAddress ?? ipAddress,
+                    SlaveId = data.SlaveId > 0 ? data.SlaveId : slaveId,
+                    RunCount = data.RunCount,
+                    Status = "未知",
+                    IsOperational = data.IsOperational
+                };
+                
+                int deviceIndex = deviceDataList.IndexOf(data);
+                device.StartCommand = new RelayCommand(async () => await ExecuteStart(deviceIndex));
+                device.StopCommand = new RelayCommand(async () => await ExecuteStop(deviceIndex));
+
+                device.DataChanged += (sender, e) => DeviceDataChanged(deviceIndex, e.Name, e.IpAddress, e.SlaveId, e.IsOperational, e.RunCount);
+
+                Devices.Add(device);
+                System.Diagnostics.Debug.WriteLine($" Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
+            }
+        }
+
+        private void InitializeDefaultDevices()
+        {
             for (int i = 0; i < 12; i++)
             {
                 string ipAddress;
@@ -58,35 +112,14 @@ namespace SJAPP.Core.ViewModel
                     slaveId = 1;
                 }
 
-                string name = $"設備 {i + 1}";
-                bool isOperational = false;
-                int runCount = 0;
-                if (i < deviceData.Count)
-                {
-                    if (!string.IsNullOrEmpty(deviceData[i].Name))
-                    {
-                        name = deviceData[i].Name;
-                    }
-                    if (!string.IsNullOrEmpty(deviceData[i].IpAddress))
-                    {
-                        ipAddress = deviceData[i].IpAddress;
-                    }
-                    if (deviceData[i].SlaveId > 0)
-                    {
-                        slaveId = deviceData[i].SlaveId;
-                    }
-                    isOperational = deviceData[i].IsOperational;
-                    runCount = deviceData[i].RunCount;
-                }
-
                 var device = new DeviceModel
                 {
-                    Name = name,
+                    Name = $"設備 {i + 1}",
                     IpAddress = ipAddress,
                     SlaveId = slaveId,
-                    RunCount = runCount,
+                    RunCount = 0,
                     Status = "未知",
-                    IsOperational = isOperational
+                    IsOperational = false
                 };
 
                 int deviceIndex = i;
@@ -96,20 +129,25 @@ namespace SJAPP.Core.ViewModel
                 device.DataChanged += (sender, e) => DeviceDataChanged(deviceIndex, e.Name, e.IpAddress, e.SlaveId, e.IsOperational, e.RunCount);
 
                 Devices.Add(device);
-                System.Diagnostics.Debug.WriteLine($"Added device {i + 1}: Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
-
                 _dataService.SaveDeviceData(deviceIndex, device.Name, device.IpAddress, device.SlaveId, device.IsOperational, device.RunCount);
+                System.Diagnostics.Debug.WriteLine($"Initialized default device {i + 1}: Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
             }
-
-            _updateTimer = new Timer(5000);
-            _updateTimer.Elapsed += async (s, e) => await UpdateDeviceData();
-            _updateTimer.AutoReset = true;
         }
 
         [SuppressPropertyChangedWarnings]
         private void DeviceDataChanged(int deviceIndex, string name, string ipAddress, int slaveId, bool isOperational, int runCount)
         {
-            _dataService.SaveDeviceData(deviceIndex, name, ipAddress, slaveId, isOperational, runCount);
+            var device = Devices[deviceIndex];
+            if (device != null)
+            {
+                device.Name = name;
+                device.IpAddress = ipAddress;
+                device.SlaveId = slaveId;
+                device.IsOperational = isOperational;
+                device.RunCount = runCount;
+                _dataService.SaveDeviceData(deviceIndex, name, ipAddress, slaveId, isOperational, runCount);
+                System.Diagnostics.Debug.WriteLine($"Saved changes for device {deviceIndex + 1}: Name={name}, IP={ipAddress}, SlaveId={slaveId}, IsOperational={isOperational}, RunCount={runCount}");
+            }
         }
 
         private async Task UpdateDeviceData()

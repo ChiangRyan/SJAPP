@@ -60,12 +60,18 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Services\ILoginDialogService.cs" />
+    <Compile Include="Tool\Converters.cs" />
     <Compile Include="Helpers\RelayCommand.cs" />
     <Compile Include="Helpers\ViewModelBase.cs" />
     <Compile Include="Model\CommunicationService.cs" />
+    <Compile Include="Model\DeviceData.cs" />
     <Compile Include="Model\DeviceModel.cs" />
     <Compile Include="Model\ModbusReadResult.cs" />
+    <Compile Include="Model\Permission.cs" />
+    <Compile Include="Model\PermissionService.cs" />
     <Compile Include="Model\SqliteDataService.cs" />
+    <Compile Include="Model\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -81,8 +87,15 @@
     </Compile>
     <Compile Include="Services\Communication\ICommunicationService.cs" />
     <Compile Include="ViewModel\HomeViewModel.cs" />
+    <Compile Include="ViewModel\AlarmWarningViewModel.cs" />
+    <Compile Include="ViewModel\LoginViewModel.cs" />
+    <Compile Include="ViewModel\MonitorViewModel.cs" />
     <Compile Include="ViewModel\ManualOperationViewModel.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
+    <Compile Include="ViewModel\SettingsViewModel.cs" />
+    <Compile Include="Views\LoginWindow.xaml.cs">
+      <DependentUpon>LoginWindow.xaml</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -125,5 +138,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="AnyConv.com__logotest.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Views\LoginWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>
