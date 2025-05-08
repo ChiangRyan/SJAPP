@@ -65,7 +65,7 @@ namespace SJAPP.Views
                     mainWindow.DataContext = ServiceProvider.GetService<MainWindowViewModel>();
                     Debug.WriteLine("MainWindow DataContext set.");
 
-                    await Task.Delay(3000);
+                    await Task.Delay(2000);
 
                     loadingWindow.Close();
                     Debug.WriteLine("LoadingWindow closed.");

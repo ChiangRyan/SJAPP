@@ -1,11 +1,11 @@
 ﻿using SJAPP.Core.Helpers;
 using SJAPP.Core.Model;
+using SJAPP.Core.Service;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows;
 using System;
-using SJAPP.Core.Views;
-using SJAPP.Core.Service;
+
 
 namespace SJAPP.Core.ViewModel
 {
@@ -120,10 +120,13 @@ namespace SJAPP.Core.ViewModel
         private void ExecuteLogout()
         {
             _permissionService.Logout();
+            _mainFrame.Navigate(null);
             UpdatePermissionProperties();
             OnPropertyChanged(nameof(IsLoggedIn));
             OnPropertyChanged(nameof(CanLogin));
             OnPropertyChanged(nameof(CanLogout));
+            // 使用接口調用方法
+            _loginDialogService.ClearNavigationSelection();
             System.Diagnostics.Debug.WriteLine("Logout successful.");
         }
 

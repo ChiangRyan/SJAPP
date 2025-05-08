@@ -137,6 +137,19 @@ namespace SJAPP.Core.Model
                         )";
                     command.ExecuteNonQuery();
 
+                    // 創建 DeviceRecords 表
+                    command.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS DeviceRecords (
+                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            DeviceId INTEGER NOT NULL,
+                            DeviceName TEXT NOT NULL,
+                            Username TEXT NOT NULL,
+                            Content TEXT NOT NULL,
+                            Timestamp TEXT NOT NULL,
+                            FOREIGN KEY (DeviceId) REFERENCES DeviceData(Id)
+                        )";
+                    command.ExecuteNonQuery();
+
                     // 檢查並添加 DataValue 欄位（如果不存在）
                     bool hasDataValue = false;
                     command.CommandText = "PRAGMA table_info(DeviceData)";
@@ -387,6 +400,112 @@ namespace SJAPP.Core.Model
         public void SaveDeviceData(DeviceData deviceData)
         {
             SaveDeviceData(deviceData.Id - 1, deviceData.Name, deviceData.IpAddress, deviceData.SlaveId, deviceData.IsOperational, deviceData.RunCount);
+        }
+
+        // 新增设备记录
+        public void AddDeviceRecord(DeviceRecord record)
+        {
+            try
+            {
+                Debug.WriteLine($"Adding device record for device: {record.DeviceName}");
+                using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+                {
+                    connection.Open();
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"
+                        INSERT INTO DeviceRecords (DeviceId, DeviceName, Username, Content, Timestamp)
+                        VALUES (@deviceId, @deviceName, @username, @content, @timestamp)";
+                    command.Parameters.AddWithValue("@deviceId", record.DeviceId);
+                    command.Parameters.AddWithValue("@deviceName", record.DeviceName);
+                    command.Parameters.AddWithValue("@username", record.Username);
+                    command.Parameters.AddWithValue("@content", record.Content);
+                    command.Parameters.AddWithValue("@timestamp", record.Timestamp.ToString("o"));
+                    command.ExecuteNonQuery();
+                    Debug.WriteLine("Device record added successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"AddDeviceRecord failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        // 获取设备记录
+        public List<DeviceRecord> GetDeviceRecords(int deviceId)
+        {
+            var records = new List<DeviceRecord>();
+            try
+            {
+                Debug.WriteLine($"Querying records for device ID: {deviceId}");
+                using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+                {
+                    connection.Open();
+                    var command = connection.CreateCommand();
+                    command.CommandText = "SELECT * FROM DeviceRecords WHERE DeviceId = @deviceId ORDER BY Timestamp DESC";
+                    command.Parameters.AddWithValue("@deviceId", deviceId);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            records.Add(new DeviceRecord
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                DeviceId = Convert.ToInt32(reader["DeviceId"]),
+                                DeviceName = reader["DeviceName"].ToString(),
+                                Username = reader["Username"].ToString(),
+                                Content = reader["Content"].ToString(),
+                                Timestamp = DateTime.Parse(reader["Timestamp"].ToString())
+                            });
+                        }
+                    }
+                }
+                Debug.WriteLine($"Found {records.Count} records for device ID: {deviceId}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"GetDeviceRecords failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                throw;
+            }
+            return records;
+        }
+
+        // 获取所有设备记录
+        public List<DeviceRecord> GetAllDeviceRecords()
+        {
+            var records = new List<DeviceRecord>();
+            try
+            {
+                Debug.WriteLine("Querying all device records.");
+                using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+                {
+                    connection.Open();
+                    var command = connection.CreateCommand();
+                    command.CommandText = "SELECT * FROM DeviceRecords ORDER BY Timestamp DESC";
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            records.Add(new DeviceRecord
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                DeviceId = Convert.ToInt32(reader["DeviceId"]),
+                                DeviceName = reader["DeviceName"].ToString(),
+                                Username = reader["Username"].ToString(),
+                                Content = reader["Content"].ToString(),
+                                Timestamp = DateTime.Parse(reader["Timestamp"].ToString())
+                            });
+                        }
+                    }
+                }
+                Debug.WriteLine($"Found {records.Count} device records in total.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"GetAllDeviceRecords failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                throw;
+            }
+            return records;
         }
     }
 }

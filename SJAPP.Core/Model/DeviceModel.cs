@@ -100,6 +100,7 @@ namespace SJAPP.Core.Model
 
         public ICommand StartCommand { get; set; }
         public ICommand StopCommand { get; set; }
+        public ICommand RecordCommand { get; set; }
 
         protected void OnPropertyChanged(string propertyName)
         {

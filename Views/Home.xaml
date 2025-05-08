@@ -29,6 +29,13 @@
             <Setter Property="Background" Value="DarkSlateGray"/>
         </Style>
 
+        <!-- 紀錄按鈕樣式 -->
+        <Style x:Key="RecordButtonStyle" TargetType="Button" BasedOn="{StaticResource MyButtonStyle}">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="40"/>
+        </Style>
+
         <!-- 啟動按鈕樣式 -->
         <Style x:Key="StartButtonStyle" TargetType="Button" BasedOn="{StaticResource MyButtonStyle}">
             <Setter Property="Background" Value="#4CAF50"/>
@@ -139,6 +146,10 @@
                                 <Button Content="啟動" Command="{Binding StartCommand}" Style="{StaticResource StartButtonStyle}"/>
                                 <Button Content="停止" Command="{Binding StopCommand}" Style="{StaticResource StopButtonStyle}"/>
                             </StackPanel>
+
+                            <!-- 新增紀錄按鈕 -->
+                            <Button Content="紀錄" Command="{Binding RecordCommand}" Style="{StaticResource RecordButtonStyle}" 
+                                    Margin="0,10,0,0" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
                 </DataTemplate>

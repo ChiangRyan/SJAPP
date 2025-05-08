@@ -8,6 +8,9 @@ using System.Windows.Controls;
 using SJAPP.Core.Model;
 using SJAPP.Core.Views;
 using SJAPP.Core.Service;
+using System.Collections.Generic;
+using System.Windows.Media;
+using System.Linq;
 
 namespace SJAPP.Views
 {
@@ -63,6 +66,15 @@ namespace SJAPP.Views
 
             Debug.WriteLine("MainWindow created.");
 
+        }
+
+        public void ClearNavigationSelection()
+        {
+            // 直接引用已知的導航按鈕並取消選中
+            HomeButton.IsChecked = false;
+
+            // 清空主框架
+            MainFrame.Content = null;
         }
 
         public (bool Success, string Username, string Password) ShowLoginDialog()
