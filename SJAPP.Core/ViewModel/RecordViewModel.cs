@@ -60,7 +60,7 @@ namespace SJAPP.Core.ViewModel
             try
             {
                 Debug.WriteLine(
-                   $"AddRecord: DeviceId={_deviceId}," +
+                   $" AddRecord: DeviceId={_deviceId}," +
                    $" DeviceName={_deviceName}," +
                    $" Username={_currentUsername}," +
                    $" Content={RecordContent}"

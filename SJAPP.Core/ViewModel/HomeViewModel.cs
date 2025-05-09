@@ -78,6 +78,7 @@ namespace SJAPP.Core.ViewModel
 
                 var device = new DeviceModel
                 {
+                    Id = data.Id, // 使用資料庫中的 ID，確保 ID 從資料庫中正確載入
                     Name = data.Name ?? $"設備 {deviceDataList.IndexOf(data) + 1}", // 使用資料庫名稱，無則用預設
                     IpAddress = data.IpAddress ?? ipAddress,
                     SlaveId = data.SlaveId > 0 ? data.SlaveId : slaveId,
@@ -139,7 +140,7 @@ namespace SJAPP.Core.ViewModel
                 device.DataChanged += (sender, e) => DeviceDataChanged(deviceIndex, e.Name, e.IpAddress, e.SlaveId, e.IsOperational, e.RunCount);
 
                 Devices.Add(device);
-                _dataService.SaveDeviceData(deviceIndex, device.Name, device.IpAddress, device.SlaveId, device.IsOperational, device.RunCount);
+                _dataService.SaveDeviceData(i, device.Name, device.IpAddress, device.SlaveId, device.IsOperational, device.RunCount);
                 Debug.WriteLine($"Initialized default device {i + 1}: Id={device.Id}, Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
             }
         }
@@ -155,7 +156,8 @@ namespace SJAPP.Core.ViewModel
                 device.SlaveId = slaveId;
                 device.IsOperational = isOperational;
                 device.RunCount = runCount;
-                _dataService.SaveDeviceData(deviceIndex, name, ipAddress, slaveId, isOperational, runCount);
+                int dbIndex = device.Id - 1; // 由於資料庫 ID 從 1 開始，轉換為從 0 開始的索引
+                _dataService.SaveDeviceData(dbIndex, name, ipAddress, slaveId, isOperational, runCount);
                 Debug.WriteLine($"Saved changes for device {deviceIndex + 1}: Name={name}, IP={ipAddress}, SlaveId={slaveId}, IsOperational={isOperational}, RunCount={runCount}");
             }
         }
@@ -314,6 +316,15 @@ namespace SJAPP.Core.ViewModel
                 }
 
                 var device = Devices[deviceIndex];
+
+                // 確保 device.Id 大於 0，這是資料庫中的 ID，不是集合索引
+                if (device.Id <= 0)
+                {
+                    Debug.WriteLine($"無效的設備 ID: {device.Id}，設備索引: {deviceIndex}");
+                    MessageBox.Show($"設備 '{device.Name}' 的 ID 無效。請確保設備在資料庫中已正確設置 ID。", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
                 var currentUser = _permissionService.CurrentUser?.Username ?? "DefaultUser";
                 Debug.WriteLine($"ShowRecordWindow: DeviceIndex={deviceIndex}, DeviceId={device.Id}, DeviceName={device.Name}, Username={currentUser}");
                 var (deviceName, username, deviceId) = _recorddialogService.ShowRecordDialog(device.Id, device.Name, currentUser);
