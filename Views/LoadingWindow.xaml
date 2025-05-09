@@ -8,7 +8,6 @@
         Background="Transparent"
         ResizeMode="NoResize">
 
-    <!-- 視覺資源 -->
     <Window.Resources>
         <LinearGradientBrush x:Key="BackgroundGradient" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Color="#FF6B48FF" Offset="0"/>
@@ -22,12 +21,14 @@
         </Style>
     </Window.Resources>
 
-    <!-- 主容器 -->
     <Grid>
-        <!-- 背景遮罩 -->
+        <!-- 背景遮罩：添加Clip裁剪圆角 -->
         <Border CornerRadius="24" 
                 Background="{StaticResource BackgroundGradient}"
                 Opacity="0.95">
+            <Border.Clip>
+                <RectangleGeometry Rect="0,0,320,320" RadiusX="24" RadiusY="24"/>
+            </Border.Clip>
             <Border.Effect>
                 <DropShadowEffect BlurRadius="24" 
                                   ShadowDepth="0"
@@ -35,18 +36,24 @@
             </Border.Effect>
         </Border>
 
-        <!-- 內容區 -->
         <StackPanel VerticalAlignment="Center" 
                     HorizontalAlignment="Center"
                     Margin="20">
 
-            <!-- 動畫圓點群 -->
+            <!-- 修正主动画：椭圆绕中心旋转 -->
             <Canvas Width="120" Height="120" Margin="0,0,0,20">
-                <!-- 主旋轉動畫 -->
-                <Ellipse Canvas.Left="50" Canvas.Top="10"
-                         Fill="#FFF">
+                <!-- 主旋轉動畫：绕Canvas中心旋转 -->
+                <Ellipse Fill="#FFF">
+                    <!-- 通过变换组合定位到旋转轨道 -->
                     <Ellipse.RenderTransform>
-                        <RotateTransform x:Name="MainRotate" Angle="0"/>
+                        <TransformGroup>
+                            <!-- 移动到Canvas中心 -->
+                            <TranslateTransform X="10" Y="10"/>
+                            <!-- 设置旋转中心偏移到Canvas中心 -->
+                            <RotateTransform x:Name="MainRotate" Angle="0"/>
+                            <!-- 调整到轨道半径位置 -->
+                            <TranslateTransform X="40" Y="0"/>
+                        </TransformGroup>
                     </Ellipse.RenderTransform>
                     <Ellipse.Triggers>
                         <EventTrigger RoutedEvent="Loaded">
@@ -63,6 +70,7 @@
                         </EventTrigger>
                     </Ellipse.Triggers>
                 </Ellipse>
+
 
                 <!-- 副動畫圓點 -->
                 <Ellipse Canvas.Left="30" Canvas.Top="50" 
@@ -97,7 +105,7 @@
                 </Ellipse>
             </Canvas>
 
-            <!-- 文字區 -->
+            <!-- 文字區（保持不变） -->
             <TextBlock Text="連線檢查中..." 
                        FontSize="22"
                        FontWeight="SemiBold"

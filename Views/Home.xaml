@@ -4,12 +4,16 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:vm="clr-namespace:SJAPP.Core.ViewModel;assembly=SJAPP.Core"
+      xmlns:converters="clr-namespace:SJAPP.Core.Tool.Converters;assembly=SJAPP.Core"
       mc:Ignorable="d"
       Title="Home" d:DesignHeight="450" d:DesignWidth="800"
       KeepAlive="True">
 
     <!-- 定義全局樣式 -->
     <Page.Resources>
+        <!-- 引用轉換器 -->
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
         <!-- 統一 TextBlock 樣式 -->
         <Style x:Key="MyTextBlockStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>
@@ -141,10 +145,26 @@
                             <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding SlaveId, StringFormat=從站 ID：{0}}"/>
                             <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding RunCount, StringFormat=跑合：{0}}"/>
                             <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding Status, StringFormat=狀態：{0}}" FontWeight="Bold" Foreground="DarkSlateBlue"/>
-
+                            <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding CanControlDevice}" />
                             <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Center">
-                                <Button Content="啟動" Command="{Binding StartCommand}" Style="{StaticResource StartButtonStyle}"/>
-                                <Button Content="停止" Command="{Binding StopCommand}" Style="{StaticResource StopButtonStyle}"/>
+                                <Button Content="啟動" 
+                                        x:Name="Start"
+                                        Command="{Binding StartCommand}" 
+                                        Style="{StaticResource StartButtonStyle}"
+                                        Visibility="{
+                                            Binding DataContext.CanControlDevice, 
+                                            RelativeSource={RelativeSource AncestorType=Page}, 
+                                            Converter={StaticResource 
+                                            BooleanToVisibilityConverter}}"/>
+                                <Button Content="停止" 
+                                        Command="{Binding StopCommand}" 
+                                        Style="{StaticResource StopButtonStyle}"
+                                        Visibility="{
+                                            Binding DataContext.CanControlDevice, 
+                                            RelativeSource={RelativeSource AncestorType=Page}, 
+                                            Converter={StaticResource 
+                                            BooleanToVisibilityConverter}}"/>
+                                
                             </StackPanel>
 
                             <!-- 新增紀錄按鈕 -->

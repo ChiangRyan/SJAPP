@@ -11,6 +11,7 @@ using System.Linq;
 using SJAPP.Core.Service;
 using System.Windows;
 
+
 namespace SJAPP.Core.ViewModel
 {
     [AddINotifyPropertyChangedInterface]
@@ -20,6 +21,8 @@ namespace SJAPP.Core.ViewModel
         private readonly SqliteDataService _dataService;
         private readonly PermissionService _permissionService;
         private readonly IRecordDialogService _recorddialogService;
+        // 添加控制設備的權限屬性
+        public bool CanControlDevice => _permissionService.HasPermission(Permission.ControlDevice);
 
         private readonly Timer _updateTimer;
 
@@ -36,6 +39,12 @@ namespace SJAPP.Core.ViewModel
             _dataService = dataService;
             _recorddialogService = RecordDialogService;
             _permissionService = permissionService;
+
+            // 訂閱權限變更事件
+            _permissionService.PermissionsChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(CanControlDevice));
+            };
 
             Devices = new ObservableCollection<DeviceModel>();
 
