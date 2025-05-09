@@ -3,8 +3,19 @@ using System.Windows.Input;
 
 namespace SJAPP.Core.Model
 {
+    public class DeviceDataChangedEventArgs : System.EventArgs
+    {
+        public string Name { get; set; }
+        public string IpAddress { get; set; }
+        public int SlaveId { get; set; }
+        public int RunCount { get; set; }
+        public bool IsOperational { get; set; }
+    }
+
     public class DeviceModel : INotifyPropertyChanged
     {
+        public int Id { get; set; }
+
         private string _name;
         private string _ipAddress;
         private int _slaveId;
@@ -13,7 +24,7 @@ namespace SJAPP.Core.Model
         private bool _isOperational;
 
         public event PropertyChangedEventHandler PropertyChanged;
-        public event System.EventHandler<(string Name, string IpAddress, int SlaveId, int RunCount,bool IsOperational)> DataChanged;
+        public event System.EventHandler<DeviceDataChangedEventArgs> DataChanged;
 
         public string Name
         {
@@ -66,7 +77,7 @@ namespace SJAPP.Core.Model
                 {
                     _runCount = value;
                     OnPropertyChanged(nameof(RunCount));
-                    NotifyDataChanged(); // 觸發 DataChanged 事件
+                    NotifyDataChanged();
                 }
             }
         }
@@ -107,9 +118,16 @@ namespace SJAPP.Core.Model
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public void NotifyDataChanged()
+        private void NotifyDataChanged()
         {
-            DataChanged?.Invoke(this, (Name, IpAddress, SlaveId, RunCount,IsOperational));
+            DataChanged?.Invoke(this, new DeviceDataChangedEventArgs
+            {
+                Name = Name,
+                IpAddress = IpAddress,
+                SlaveId = SlaveId,
+                RunCount = RunCount,
+                IsOperational = IsOperational
+            });
         }
     }
 }

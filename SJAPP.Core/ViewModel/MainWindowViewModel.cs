@@ -54,11 +54,11 @@ namespace SJAPP.Core.ViewModel
         public ICommand NavigateCommand { get; }
         public ICommand ShowLoginCommand { get; }
 
-        public MainWindowViewModel(PermissionService permissionService, Frame mainFrame, ILoginDialogService loginDialogService)
+        public MainWindowViewModel(PermissionService permissionService, Frame mainFrame, ILoginDialogService DialogService)
         {
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _mainFrame = mainFrame ?? throw new ArgumentNullException(nameof(mainFrame));
-            _loginDialogService = loginDialogService;
+            _loginDialogService = DialogService;
             _username = string.Empty;
             _password = string.Empty;
 

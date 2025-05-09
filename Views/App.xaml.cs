@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using SQLitePCL;
 using System.Diagnostics;
+using SJAPP.Core.Service;
 
 namespace SJAPP.Views
 {
@@ -114,15 +115,32 @@ namespace SJAPP.Views
             services.AddSingleton<ICommunicationService, CommunicationService>();
             services.AddSingleton<SqliteDataService>(provider => new SqliteDataService(insertTestData: true));
             services.AddSingleton<PermissionService>();
-            services.AddSingleton<MainWindow>();
-            services.AddSingleton<HomeViewModel>();
-            services.AddSingleton<ManualOperationViewModel>();
+            services.AddSingleton<ILoginDialogService, MainWindow>();
+
+            services.AddSingleton<MainWindow>(provider =>
+                new MainWindow(provider.GetService<IServiceProvider>()));
+
             services.AddSingleton<MainWindowViewModel>(provider =>
                 new MainWindowViewModel(
                     provider.GetService<PermissionService>(),
                     provider.GetService<MainWindow>().MainFrame,
                     provider.GetService<MainWindow>()
                 ));
+
+            services.AddSingleton<HomeViewModel>(provider =>
+                new HomeViewModel(
+                    provider.GetService<ICommunicationService>(),
+                    provider.GetService<SqliteDataService>(),
+                    provider.GetService<IRecordDialogService>(),
+                    provider.GetService<PermissionService>()
+                ));
+
+            services.AddSingleton<IRecordDialogService, RecordService>(provider =>
+                new RecordService(provider.GetService<SqliteDataService>()));
+
+            services.AddSingleton<ManualOperationViewModel>();
+
+            
         }
 
         protected override void OnExit(ExitEventArgs e)

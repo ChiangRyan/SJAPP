@@ -4,13 +4,10 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using SJAPP.Core.ViewModel;
 using SJAPP.Properties;
-using System.Windows.Controls;
 using SJAPP.Core.Model;
 using SJAPP.Core.Views;
 using SJAPP.Core.Service;
-using System.Collections.Generic;
-using System.Windows.Media;
-using System.Linq;
+
 
 namespace SJAPP.Views
 {
@@ -21,7 +18,7 @@ namespace SJAPP.Views
         private Home _homePage;
         private ManualOperation _manualoperationPage;
 
-        public MainWindow()
+        public MainWindow(IServiceProvider serviceProvider)
         {
             Debug.WriteLine("Creating MainWindow...");
             InitializeComponent();

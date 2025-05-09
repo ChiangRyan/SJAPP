@@ -4,10 +4,12 @@ using SJAPP.Core.Helpers;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
+using System.Diagnostics;
 using System.Timers;
 using PropertyChanged;
 using System.Linq;
+using SJAPP.Core.Service;
+using System.Windows;
 
 namespace SJAPP.Core.ViewModel
 {
@@ -16,19 +18,24 @@ namespace SJAPP.Core.ViewModel
     {
         private readonly ICommunicationService _communicationService;
         private readonly SqliteDataService _dataService;
+        private readonly PermissionService _permissionService;
+        private readonly IRecordDialogService _recorddialogService;
+
         private readonly Timer _updateTimer;
+
+        //Mapping Modbus位置設置
         private readonly int _runCountAddress = 10;
         private readonly int _statusAddress = 1;
         private readonly int _controlAddress = 0;
 
         public ObservableCollection<DeviceModel> Devices { get; set; }
 
-        public HomeViewModel(ICommunicationService communicationService, SqliteDataService dataService)
+        public HomeViewModel(ICommunicationService communicationService, SqliteDataService dataService, IRecordDialogService RecordDialogService, PermissionService permissionService)
         {
             _communicationService = communicationService;
             _dataService = dataService;
-
-        
+            _recorddialogService = RecordDialogService;
+            _permissionService = permissionService;
 
             Devices = new ObservableCollection<DeviceModel>();
 
@@ -68,7 +75,7 @@ namespace SJAPP.Core.ViewModel
                     ipAddress = "192.168.64.89";
                     slaveId = 1;
                 }
-                
+
                 var device = new DeviceModel
                 {
                     Name = data.Name ?? $"設備 {deviceDataList.IndexOf(data) + 1}", // 使用資料庫名稱，無則用預設
@@ -78,15 +85,16 @@ namespace SJAPP.Core.ViewModel
                     Status = "未知",
                     IsOperational = data.IsOperational
                 };
-                
+
                 int deviceIndex = deviceDataList.IndexOf(data);
                 device.StartCommand = new RelayCommand(async () => await ExecuteStart(deviceIndex));
                 device.StopCommand = new RelayCommand(async () => await ExecuteStop(deviceIndex));
+                device.RecordCommand = new RelayCommand(() => ShowRecordWindow(deviceIndex)); // 添加记录按钮命令
 
                 device.DataChanged += (sender, e) => DeviceDataChanged(deviceIndex, e.Name, e.IpAddress, e.SlaveId, e.IsOperational, e.RunCount);
 
                 Devices.Add(device);
-                System.Diagnostics.Debug.WriteLine($" Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
+                Debug.WriteLine($"Loaded device: Id={device.Id}, Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
             }
         }
 
@@ -114,6 +122,7 @@ namespace SJAPP.Core.ViewModel
 
                 var device = new DeviceModel
                 {
+                    Id = i + 1,
                     Name = $"設備 {i + 1}",
                     IpAddress = ipAddress,
                     SlaveId = slaveId,
@@ -125,12 +134,13 @@ namespace SJAPP.Core.ViewModel
                 int deviceIndex = i;
                 device.StartCommand = new RelayCommand(async () => await ExecuteStart(deviceIndex));
                 device.StopCommand = new RelayCommand(async () => await ExecuteStop(deviceIndex));
+                device.RecordCommand = new RelayCommand(() => ShowRecordWindow(deviceIndex)); // 添加记录按钮命令
 
                 device.DataChanged += (sender, e) => DeviceDataChanged(deviceIndex, e.Name, e.IpAddress, e.SlaveId, e.IsOperational, e.RunCount);
 
                 Devices.Add(device);
                 _dataService.SaveDeviceData(deviceIndex, device.Name, device.IpAddress, device.SlaveId, device.IsOperational, device.RunCount);
-                System.Diagnostics.Debug.WriteLine($"Initialized default device {i + 1}: Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
+                Debug.WriteLine($"Initialized default device {i + 1}: Id={device.Id}, Name={device.Name}, IP={device.IpAddress}, SlaveId={device.SlaveId}, IsOperational={device.IsOperational}, RunCount={device.RunCount}");
             }
         }
 
@@ -146,7 +156,7 @@ namespace SJAPP.Core.ViewModel
                 device.IsOperational = isOperational;
                 device.RunCount = runCount;
                 _dataService.SaveDeviceData(deviceIndex, name, ipAddress, slaveId, isOperational, runCount);
-                System.Diagnostics.Debug.WriteLine($"Saved changes for device {deviceIndex + 1}: Name={name}, IP={ipAddress}, SlaveId={slaveId}, IsOperational={isOperational}, RunCount={runCount}");
+                Debug.WriteLine($"Saved changes for device {deviceIndex + 1}: Name={name}, IP={ipAddress}, SlaveId={slaveId}, IsOperational={isOperational}, RunCount={runCount}");
             }
         }
 
@@ -156,7 +166,7 @@ namespace SJAPP.Core.ViewModel
             {
                 if (!device.IsOperational)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Skipping update for device {device.Name}: Device is not operational.");
+                    Debug.WriteLine($"Skipping update for device {device.Name}: Device is not operational.");
                     continue;
                 }
 
@@ -181,13 +191,13 @@ namespace SJAPP.Core.ViewModel
                                 device.Status = "未知";
                                 break;
                         }
-                        System.Diagnostics.Debug.WriteLine($"Device {device.Name} status updated: {device.Status}");
+                        Debug.WriteLine($"Device {device.Name} status updated: {device.Status}");
                     }
                     else
                     {
                         device.Status = "通訊失敗";
                         device.IsOperational = false; // 通訊失敗時，自動設為不運作
-                        System.Diagnostics.Debug.WriteLine($"Failed to read status for device {device.Name}: {statusResult.Message}");
+                        Debug.WriteLine($"Failed to read status for device {device.Name}: {statusResult.Message}");
                     }
 
                     if (device.IsOperational) // 只有在仍運作時才繼續讀取跑合次數
@@ -198,19 +208,19 @@ namespace SJAPP.Core.ViewModel
                             int lowWord = runCountResult.Data[0];
                             int highWord = runCountResult.Data[1];
                             device.RunCount = (highWord << 16) | (lowWord & 0xFFFF);
-                            System.Diagnostics.Debug.WriteLine($"Device {device.Name} run count updated: {device.RunCount}");
+                            Debug.WriteLine($"Device {device.Name} run count updated: {device.RunCount}");
                         }
                         else
                         {
                             device.Status = "通訊失敗";
                             device.IsOperational = false; // 通訊失敗時，自動設為不運作
-                            System.Diagnostics.Debug.WriteLine($"Failed to read run count for device {device.Name}: {runCountResult.Message}");
+                            Debug.WriteLine($"Failed to read run count for device {device.Name}: {runCountResult.Message}");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Failed to update device {device.Name}: {ex.Message}");
+                    Debug.WriteLine($"Failed to update device {device.Name}: {ex.Message}");
                     device.Status = "通訊失敗";
                     device.IsOperational = false; // 異常時也設為不運作
                 }
@@ -222,7 +232,7 @@ namespace SJAPP.Core.ViewModel
             var device = Devices[deviceIndex];
             if (!device.IsOperational || device.Status == "運行中" || device.Status == "通訊失敗")
             {
-                System.Diagnostics.Debug.WriteLine($"Cannot start device {device.Name}: Device is not operational, already running, or communication failed.");
+                Debug.WriteLine($"Cannot start device {device.Name}: Device is not operational, already running, or communication failed.");
                 return;
             }
 
@@ -230,19 +240,19 @@ namespace SJAPP.Core.ViewModel
             try
             {
                 _updateTimer.Stop();
-                System.Diagnostics.Debug.WriteLine("Update timer stopped for ExecuteStart.");
+                Debug.WriteLine("Update timer stopped for ExecuteStart.");
                 await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 1, 6);
                 await UpdateDeviceData();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ExecuteStart failed: {ex.Message}");
+                Debug.WriteLine($"ExecuteStart failed: {ex.Message}");
                 device.Status = "啟動失敗";
             }
             finally
             {
                 _updateTimer.Start();
-                System.Diagnostics.Debug.WriteLine("Update timer restarted after ExecuteStart.");
+                Debug.WriteLine("Update timer restarted after ExecuteStart.");
             }
         }
 
@@ -251,7 +261,7 @@ namespace SJAPP.Core.ViewModel
             var device = Devices[deviceIndex];
             if (!device.IsOperational || device.Status == "閒置" || device.Status == "通訊失敗")
             {
-                System.Diagnostics.Debug.WriteLine($"Cannot stop device {device.Name}: Device is not operational, already idle, or communication failed.");
+                Debug.WriteLine($"Cannot stop device {device.Name}: Device is not operational, already idle, or communication failed.");
                 return;
             }
 
@@ -259,19 +269,19 @@ namespace SJAPP.Core.ViewModel
             try
             {
                 _updateTimer.Stop();
-                System.Diagnostics.Debug.WriteLine("Update timer stopped for ExecuteStop.");
+                Debug.WriteLine("Update timer stopped for ExecuteStop.");
                 await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 0, 6);
                 await UpdateDeviceData();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ExecuteStop failed: {ex.Message}");
+                Debug.WriteLine($"ExecuteStop failed: {ex.Message}");
                 device.Status = "停止失敗";
             }
             finally
             {
                 _updateTimer.Start();
-                System.Diagnostics.Debug.WriteLine("Update timer restarted after ExecuteStop.");
+                Debug.WriteLine("Update timer restarted after ExecuteStop.");
             }
         }
 
@@ -279,7 +289,7 @@ namespace SJAPP.Core.ViewModel
         {
             _updateTimer.Stop();
             _communicationService.CleanupConnections();
-            System.Diagnostics.Debug.WriteLine("Update timer stopped and connections cleaned up due to page unload.");
+            Debug.WriteLine("Update timer stopped and connections cleaned up due to page unload.");
         }
 
         public async void StartPolling()
@@ -288,7 +298,31 @@ namespace SJAPP.Core.ViewModel
             if (!_updateTimer.Enabled)
             {
                 _updateTimer.Start();
-                System.Diagnostics.Debug.WriteLine("Update timer started due to page load.");
+                Debug.WriteLine("Update timer started due to page load.");
+            }
+        }
+
+        private void ShowRecordWindow(int deviceIndex)
+        {
+            try
+            {
+                if (deviceIndex < 0 || deviceIndex >= Devices.Count)
+                {
+                    Debug.WriteLine($"無效的設備索引: {deviceIndex}");
+                    MessageBox.Show("請選擇有效的設備", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var device = Devices[deviceIndex];
+                var currentUser = _permissionService.CurrentUser?.Username ?? "DefaultUser";
+                Debug.WriteLine($"ShowRecordWindow: DeviceIndex={deviceIndex}, DeviceId={device.Id}, DeviceName={device.Name}, Username={currentUser}");
+                var (deviceName, username, deviceId) = _recorddialogService.ShowRecordDialog(device.Id, device.Name, currentUser);
+                Debug.WriteLine($"記錄視窗返回: 設備名稱={deviceName}, 使用者名稱={username}, 設備ID={deviceId}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"記錄視窗錯誤: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                MessageBox.Show($"顯示記錄視窗失敗: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

@@ -1,0 +1,54 @@
+﻿<Window x:Class="SJAPP.Views.RecordView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="設備紀錄" Height="650" Width="800" WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 輸入區域 -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="記錄內容:" Margin="0,0,0,5"/>
+            <TextBox Grid.Row="1" Text="{Binding RecordContent, UpdateSourceTrigger=PropertyChanged}" 
+                     AcceptsReturn="True" TextWrapping="Wrap" 
+                     Height="80" Margin="0,0,0,10"/>
+        </Grid>
+
+        <!-- 記錄數據表格 -->
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding DeviceRecords}" 
+                  AutoGenerateColumns="False" 
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  AlternatingRowBackground="AliceBlue">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                <DataGridTextColumn Header="裝置名稱" Binding="{Binding DeviceName}" Width="*"/>
+                <DataGridTextColumn Header="使用者" Binding="{Binding Username}" Width="*"/>
+                <DataGridTextColumn Header="內容" Binding="{Binding Content}" Width="2*"/>
+                <DataGridTextColumn Header="時間" Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="*" SortDirection="Descending"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 底部按鈕區域 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
+            <Button Content="添加記錄" Command="{Binding AddRecordCommand}" 
+                    Padding="15,5" Margin="0,0,10,0"/>
+            <Button Content="刷新" Command="{Binding RefreshCommand}" 
+                    Padding="15,5" Margin="0,0,10,0"/>
+            <Button Content="關閉" Click="CloseButton_Click" 
+                    Padding="15,5" HorizontalAlignment="Right"/>
+        </StackPanel>
+    </Grid>
+</Window>

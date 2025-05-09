@@ -397,9 +397,26 @@ namespace SJAPP.Core.Model
             }
         }
 
-        public void SaveDeviceData(DeviceData deviceData)
+        public bool DeviceExists(int deviceId)
         {
-            SaveDeviceData(deviceData.Id - 1, deviceData.Name, deviceData.IpAddress, deviceData.SlaveId, deviceData.IsOperational, deviceData.RunCount);
+            try
+            {
+                using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+                {
+                    connection.Open();
+                    var command = connection.CreateCommand();
+                    command.CommandText = "SELECT COUNT(*) FROM DeviceData WHERE Id = @id";
+                    command.Parameters.AddWithValue("@id", deviceId);
+                    var count = (long)command.ExecuteScalar();
+                    Debug.WriteLine($"DeviceExists: DeviceId={deviceId}, Exists={count > 0}");
+                    return count > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DeviceExists failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                return false;
+            }
         }
 
         // 新增设备记录
@@ -407,7 +424,13 @@ namespace SJAPP.Core.Model
         {
             try
             {
+                Debug.WriteLine($"Adding device record for device: {record.DeviceName}, DeviceId={record.DeviceId}");
+                if (!DeviceExists(record.DeviceId))
+                {
+                    throw new InvalidOperationException($"設備 ID {record.DeviceId} 不存在於 DeviceData 表中。");
+                }
                 Debug.WriteLine($"Adding device record for device: {record.DeviceName}");
+
                 using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
                 {
                     connection.Open();
