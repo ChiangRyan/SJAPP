@@ -11,7 +11,7 @@
         Top="0"    
         Height="1080"
         Width="1920"
-        Title="SanJetMotion" 
+        Title="SJ_SCADA_1.0.0" 
         WindowStyle="SingleBorderWindow"  
         WindowState="Maximized">
 
