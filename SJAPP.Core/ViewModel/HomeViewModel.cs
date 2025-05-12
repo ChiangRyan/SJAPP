@@ -11,8 +11,8 @@ using System.Linq;
 using SJAPP.Core.Service;
 using System.Windows;
 using SJAPP.Core.Services.AudioPlayer;
-using SJAPP.Core.Enums; 
-
+using SJAPP.Core.Enums;
+using System.IO;
 
 namespace SJAPP.Core.ViewModel
 {
@@ -118,7 +118,8 @@ namespace SJAPP.Core.ViewModel
             if (!EnableVoiceAnnouncement) return;
             try
             {
-                string audioFilePath = @"C:\Users\user1\Desktop\展機機聯網\SJAPP\bin\Release\SquidGame1.mp3";
+                string audioFileName = "SquidGame1.mp3";
+                string audioFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, audioFileName);
                 _audioPlayerService.Play(audioFilePath);
                 Debug.WriteLine($"音频播报: {audioFilePath}");
             }
@@ -128,6 +129,7 @@ namespace SJAPP.Core.ViewModel
                 // 不向用户显示错误，保持程序继续运行
             }
         }
+
 
         private void LoadDevicesFromDatabase()
         {
