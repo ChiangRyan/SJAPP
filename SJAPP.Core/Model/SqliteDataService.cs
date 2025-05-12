@@ -531,5 +531,29 @@ namespace SJAPP.Core.Model
             }
             return records;
         }
+
+        public bool DeleteDeviceRecord(int recordId)
+        {
+            try
+            {
+                Debug.WriteLine($"Deleting device record with ID: {recordId}");
+                using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+                {
+                    connection.Open();
+                    var command = connection.CreateCommand();
+                    command.CommandText = "DELETE FROM DeviceRecords WHERE Id = @id";
+                    command.Parameters.AddWithValue("@id", recordId);
+                    int rowsAffected = command.ExecuteNonQuery();
+                    Debug.WriteLine($"DeleteDeviceRecord: {rowsAffected} rows affected");
+                    return rowsAffected > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DeleteDeviceRecord failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
     }
 }

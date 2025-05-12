@@ -1,4 +1,4 @@
-﻿namespace SJAPP.Core.Model
+﻿namespace SJAPP.Core.Enums
 {
     public enum Permission
     {
@@ -7,6 +7,7 @@
         ViewMonitor,
         ViewWarning,
         ViewSettings,
-        ControlDevice
+        ControlDevice,
+        All
     }
 }

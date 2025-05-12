@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-
+using SJAPP.Core.Enums;
 namespace SJAPP.Core.Model
 {
     public class PermissionService
