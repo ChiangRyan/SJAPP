@@ -11,6 +11,7 @@ using System.Linq;
 using SJAPP.Core.Service;
 using System.Windows;
 using SJAPP.Core.Services.AudioPlayer;
+using SJAPP.Core.Enums; 
 
 
 namespace SJAPP.Core.ViewModel

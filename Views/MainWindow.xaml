@@ -26,6 +26,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="120"/>
             <!-- 工具欄 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 新增按鈕列 -->
             <RowDefinition Height="*"/>
             <!-- 主內容區域 -->
         </Grid.RowDefinitions>
@@ -115,17 +117,17 @@
 
                 <!-- 右側按鈕區域 -->
                 <StackPanel Grid.Column="1" 
-          Orientation="Horizontal" 
-          HorizontalAlignment="Right" 
-          VerticalAlignment="Top" 
-          Margin="0,10,20,0">
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Top" 
+                    Margin="0,10,20,0">   
                     <Button x:Name="LoginButton" 
-          Content="登入" 
-          Command="{Binding ShowLoginCommand}" 
-          Width="100" 
-          Height="40" 
-          Margin="5"
-          Visibility="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                        Content="登入" 
+                        Command="{Binding ShowLoginCommand}" 
+                        Width="100" 
+                        Height="40" 
+                        Margin="5"
+                        Visibility="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Background" Value="#2ECC71"/>
@@ -197,9 +199,29 @@
                 </StackPanel>
             </Grid>
         </Border>
-
+        
+        <!-- 新增按鈕列 -->
+        <StackPanel Grid.Row="1" 
+                    Orientation="Horizontal" 
+                    Height="30"
+                    VerticalAlignment="Center"
+                    Visibility="{
+                        Binding CanAll, 
+                        Converter={StaticResource BooleanToVisibilityConverter}}">
+            <!-- 一鍵啟動按鈕 -->
+            <Button Content="全部啟動" 
+                    Command="{Binding StartAllCommand}"
+                    Margin="20,0"
+                    Background="#4CAF50"/>
+            <!-- 全部停止按鈕 -->
+            <Button Content="全部停止" 
+                    Command="{Binding StopAllCommand}"
+                    Margin="10,0"
+                    Background="#F44336"/>
+        </StackPanel>
+        
         <!-- 主內容區域 -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="73*"/>
                 <ColumnDefinition Width="567*"/>

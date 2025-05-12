@@ -56,12 +56,14 @@
 
         <!-- 記錄數據表格 -->
         <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding DeviceRecords}" 
-                  AutoGenerateColumns="False" 
-                  CanUserAddRows="False"
-                  IsReadOnly="True"
-                  AlternatingRowBackground="AliceBlue"
-                  FontSize="18">
+			ItemsSource="{Binding DeviceRecords}" 
+			SelectedItem="{Binding SelectedRecord}"
+			SelectionMode="Single"
+			AutoGenerateColumns="False" 
+			CanUserAddRows="False"
+			IsReadOnly="True"
+			AlternatingRowBackground="AliceBlue"
+			FontSize="18">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
@@ -70,6 +72,12 @@
                 <DataGridTextColumn Header="內容" Binding="{Binding Content}" Width="2*"/>
                 <DataGridTextColumn Header="時間" Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="*" SortDirection="Descending"/>
             </DataGrid.Columns>
+
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="刪除記錄" Command="{Binding DeleteRecordCommand}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
         </DataGrid>
 
         <!-- 操作按鈕組 -->
@@ -83,17 +91,24 @@
                   Background="#2980B9"
                   Margin="0,0,10,0"/>
 
+            <Button Content="刪除記錄" 
+                  Command="{Binding DeleteRecordCommand}" 
+                  Style="{StaticResource DarkButtonStyle}"
+                  Background="#E74C3C"
+                  Margin="0,0,10,0"/>
+
             <Button Content="刷新" 
                   Command="{Binding RefreshCommand}" 
                   Style="{StaticResource DarkButtonStyle}"
                   Background="#27AE60"
                   Margin="0,0,10,0"/>
-
+            <!--
             <Button Content="關閉" 
                   Click="CloseButton_Click" 
                   Style="{StaticResource DarkButtonStyle}"
                   Background="#C0392B"/>
+-->
         </StackPanel>
-        
+
     </Grid>
 </Window>

@@ -22,13 +22,15 @@ namespace SJAPP.Core.ViewModel
 
         // 記錄集合
         public ObservableCollection<DeviceRecord> DeviceRecords { get; set; }
-
+        // 選中的記錄
+        public DeviceRecord SelectedRecord { get; set; }
         // 記錄內容
         public string RecordContent { get; set; }
 
         // 命令
         public ICommand AddRecordCommand { get; private set; }
         public ICommand RefreshCommand { get; private set; }
+        public ICommand DeleteRecordCommand { get; private set; }
 
         public RecordViewModel(List<DeviceRecord> records, string username, int deviceId, string deviceName, SqliteDataService dataService)
         {
@@ -48,11 +50,17 @@ namespace SJAPP.Core.ViewModel
             // 初始化命令
             AddRecordCommand = new RelayCommand(AddRecord, CanAddRecord);
             RefreshCommand = new RelayCommand(RefreshRecords);
+            DeleteRecordCommand = new RelayCommand(DeleteRecord, CanDeleteRecord);
         }
 
         private bool CanAddRecord()
         {
             return !string.IsNullOrWhiteSpace(RecordContent);
+        }
+
+        private bool CanDeleteRecord()
+        {
+            return SelectedRecord != null;
         }
 
         private void AddRecord()
@@ -94,6 +102,47 @@ namespace SJAPP.Core.ViewModel
             }
         }
 
+        private void DeleteRecord()
+        {
+            try
+            {
+                if (SelectedRecord == null)
+                {
+                    MessageBox.Show("請先選擇要刪除的記錄", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // 確認刪除
+                var result = MessageBox.Show($"確定要刪除ID為 {SelectedRecord.Id} 的記錄嗎？", "確認刪除",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    Debug.WriteLine($"正在刪除記錄 ID: {SelectedRecord.Id}");
+
+                    // 從資料庫中刪除
+                    bool success = _dataService.DeleteDeviceRecord(SelectedRecord.Id);
+
+                    if (success)
+                    {
+                        // 從集合中移除
+                        DeviceRecords.Remove(SelectedRecord);
+                        MessageBox.Show("記錄已成功刪除！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("刪除記錄失敗！記錄可能已被其他用戶刪除。", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // 刷新所有記錄
+                        RefreshRecords();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DeleteRecord failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                MessageBox.Show($"刪除記錄時發生錯誤: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void RefreshRecords()
         {
             try

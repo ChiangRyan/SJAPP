@@ -1,6 +1,7 @@
 ﻿using SJAPP.Core.Helpers;
 using SJAPP.Core.Model;
 using SJAPP.Core.Service;
+using SJAPP.Core.Enums;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows;
@@ -45,6 +46,7 @@ namespace SJAPP.Core.ViewModel
         public bool CanViewWarning => _permissionService.HasPermission(Permission.ViewWarning);
         public bool CanViewSettings => _permissionService.HasPermission(Permission.ViewSettings);
         public bool CanControlDevice => _permissionService.HasPermission(Permission.ControlDevice);
+        public bool CanAll => _permissionService.HasPermission(Permission.All);
 
         public bool CanLogin => !IsLoggedIn;
         public bool CanLogout => IsLoggedIn;
