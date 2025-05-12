@@ -397,6 +397,7 @@ namespace SJAPP.Core.Model
             }
         }
 
+
         public bool DeviceExists(int deviceId)
         {
             try
