@@ -10,7 +10,6 @@ namespace SJAPP.Core.Model
         public int SlaveId { get; set; }
         public bool IsOperational { get; set; }
         public int RunCount { get; set; }
-        public string DataValue { get; set; }
         public DateTime Timestamp { get; set; }
     }
 }

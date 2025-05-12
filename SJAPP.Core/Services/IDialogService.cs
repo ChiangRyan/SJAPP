@@ -10,6 +10,7 @@ namespace SJAPP.Core.Service
 
     public interface IRecordDialogService
     {
-        (string deviceName, string username, int deviceId) ShowRecordDialog(int deviceId, string deviceName, string username);
+        (int deviceId, string deviceName, string username, int runcount) 
+            ShowRecordDialog(int deviceId, string deviceName, string username,int runcount);
     }
 }

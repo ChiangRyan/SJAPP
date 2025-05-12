@@ -3,7 +3,7 @@ using SJAPP.Core.Views;
 using SJAPP.Views;
 using System;
 using System.Windows;
-
+using System.Diagnostics;
 namespace SJAPP.Core.Model
 {
     public class RecordService : IRecordDialogService
@@ -15,27 +15,29 @@ namespace SJAPP.Core.Model
             _dataService = dataService;
         }
 
-        public (string deviceName, string username, int deviceId) ShowRecordDialog(int deviceId, string deviceName, string username)
+        public (int deviceId, string deviceName, string username, int runcount) 
+
+            ShowRecordDialog(int deviceId, string deviceName, string username, int runcount)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"ShowRecordDialog: DeviceId={deviceId}, DeviceName={deviceName}, Username={username}");
+                Debug.WriteLine($"ShowRecordDialog: DeviceId={deviceId}, DeviceName={deviceName}, Username={username}, RunCount={runcount}");
                 if (!_dataService.DeviceExists(deviceId))
                 {
-                    System.Diagnostics.Debug.WriteLine($"無效的 DeviceId: {deviceId}");
+                    Debug.WriteLine($"無效的 DeviceId: {deviceId}");
                     MessageBox.Show($"設備 ID {deviceId} 不存在於資料庫中", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return (deviceName, username, deviceId);
+                    return (deviceId, deviceName, username, runcount);
                 }
 
-                var recordView = new RecordView(deviceId, deviceName, username, _dataService);
+                var recordView = new RecordView(deviceId, deviceName, username, runcount, _dataService);
                 recordView.ShowDialog();
-                return (deviceName, username, deviceId);
+                return (deviceId, deviceName, username, runcount);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ShowRecordDialog failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                Debug.WriteLine($"ShowRecordDialog failed: {ex.Message}\nStackTrace: {ex.StackTrace}");
                 MessageBox.Show($"顯示記錄視窗失敗: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-                return (deviceName, username, deviceId);
+                return (deviceId, deviceName, username, runcount);
             }
         }
     }

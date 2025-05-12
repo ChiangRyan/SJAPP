@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-
+using System.Diagnostics;
 namespace SJAPP.Core.Helpers
 {
     public class ViewModelBase : INotifyPropertyChanged
@@ -8,7 +8,7 @@ namespace SJAPP.Core.Helpers
 
         public void OnPropertyChanged(string propertyName)
         {
-            System.Diagnostics.Debug.WriteLine($"OnPropertyChanged called for property: {propertyName}, Has subscribers: {PropertyChanged != null}");
+            Debug.WriteLine($"OnPropertyChanged called for property: {propertyName}, Has subscribers: {PropertyChanged != null}");
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }

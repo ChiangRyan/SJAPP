@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows;
@@ -16,10 +15,11 @@ namespace SJAPP.Core.ViewModel
     public class RecordViewModel : ViewModelBase
     {
         private readonly SqliteDataService _dataService;
-        private readonly string _currentUsername;
         private readonly int _deviceId;
         private readonly string _deviceName;
-
+        private readonly string _currentUsername;
+        private readonly int _runcount;
+        
         // 記錄集合
         public ObservableCollection<DeviceRecord> DeviceRecords { get; set; }
         // 選中的記錄
@@ -32,16 +32,18 @@ namespace SJAPP.Core.ViewModel
         public ICommand RefreshCommand { get; private set; }
         public ICommand DeleteRecordCommand { get; private set; }
 
-        public RecordViewModel(List<DeviceRecord> records, string username, int deviceId, string deviceName, SqliteDataService dataService)
+        public RecordViewModel(List<DeviceRecord> records, int deviceId, string deviceName, string username,int runcount, SqliteDataService dataService)
         {
             _dataService = dataService;
-            _currentUsername = username;
             _deviceId = deviceId;
             _deviceName = deviceName;
+            _currentUsername = username;
+            _runcount = runcount;
+
             Debug.WriteLine($"RecordViewModel 初始化: DeviceId={_deviceId}, DeviceName={_deviceName}, Username={_currentUsername}");
             if (!_dataService.DeviceExists(_deviceId))
             {
-                System.Diagnostics.Debug.WriteLine($"無效的 DeviceId: {_deviceId}");
+                Debug.WriteLine($"無效的 DeviceId: {_deviceId}");
                 MessageBox.Show($"設備 ID {_deviceId} 不存在於資料庫中，請選擇有效設備", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             // 初始化記錄集合
@@ -71,6 +73,7 @@ namespace SJAPP.Core.ViewModel
                    $" AddRecord: DeviceId={_deviceId}," +
                    $" DeviceName={_deviceName}," +
                    $" Username={_currentUsername}," +
+                   $" Runcount={_runcount}," +
                    $" Content={RecordContent}"
                 );
 
@@ -79,6 +82,7 @@ namespace SJAPP.Core.ViewModel
                 {
                     DeviceId = _deviceId,
                     DeviceName = _deviceName,
+                    RunCount = _runcount,
                     Username = _currentUsername,
                     Content = RecordContent.Trim(),
                     Timestamp = DateTime.Now

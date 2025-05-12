@@ -246,7 +246,7 @@ namespace SJAPP.Core.ViewModel
             {
                 if (!device.IsOperational)
                 {
-                    Debug.WriteLine($"Skipping update for device {device.Name}: Device is not operational.");
+                    //Debug.WriteLine($"Skipping update for device {device.Name}: Device is not operational.");
                     continue;
                 }
 
@@ -418,9 +418,17 @@ namespace SJAPP.Core.ViewModel
                 }
 
                 var currentUser = _permissionService.CurrentUser?.Username ?? "DefaultUser";
-                Debug.WriteLine($"ShowRecordWindow: DeviceIndex={deviceIndex}, DeviceId={device.Id}, DeviceName={device.Name}, Username={currentUser}");
-                var (deviceName, username, deviceId) = _recorddialogService.ShowRecordDialog(device.Id, device.Name, currentUser);
-                Debug.WriteLine($"記錄視窗返回: 設備名稱={deviceName}, 使用者名稱={username}, 設備ID={deviceId}");
+                Debug.WriteLine(
+                    $"ShowRecordWindow: " +
+                    $"DeviceIndex={deviceIndex}, " +
+                    $"DeviceId={device.Id}, " +
+                    $"DeviceName={device.Name}, " +
+                    $"Username={currentUser} ," +
+                    $"Runcount={device.RunCount}"
+                    );
+
+                var (deviceId, deviceName, username, runcount) = _recorddialogService.ShowRecordDialog(device.Id, device.Name, currentUser,device.RunCount);
+                Debug.WriteLine($"記錄視窗返回: 設備名稱={deviceName}, 使用者名稱={username}, 設備ID={deviceId}, 跑和={runcount}" );
             }
             catch (Exception ex)
             {

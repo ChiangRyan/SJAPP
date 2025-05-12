@@ -66,11 +66,12 @@
 			FontSize="18">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                <DataGridTextColumn Header="裝置名稱" Binding="{Binding DeviceName}" Width="*"/>
-                <DataGridTextColumn Header="使用者" Binding="{Binding Username}" Width="*"/>
-                <DataGridTextColumn Header="內容" Binding="{Binding Content}" Width="2*"/>
+                <DataGridTextColumn Header="排序" Binding="{Binding Id}" Width="50"/>
                 <DataGridTextColumn Header="時間" Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="*" SortDirection="Descending"/>
+                <DataGridTextColumn Header="機種" Binding="{Binding DeviceName}" Width="*"/>
+                <DataGridTextColumn Header="跑合" Binding="{Binding RunCount}" Width="*"/>
+                <DataGridTextColumn Header="測試狀況" Binding="{Binding Content}" Width="2*"/>
+                <DataGridTextColumn Header="使用者" Binding="{Binding Username}" Width="*"/>
             </DataGrid.Columns>
 
             <DataGrid.ContextMenu>

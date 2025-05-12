@@ -123,6 +123,7 @@ namespace SJAPP.Core.Model
                             Permissions TEXT
                         )";
                     command.ExecuteNonQuery();
+                    //command.Parameters.Clear(); // <--- 清除參數
 
                     // 創建 DeviceData 表
                     command.CommandText = @"
@@ -136,6 +137,7 @@ namespace SJAPP.Core.Model
                             Timestamp TEXT NOT NULL
                         )";
                     command.ExecuteNonQuery();
+                    //command.Parameters.Clear(); // <--- 清除參數
 
                     // 創建 DeviceRecords 表
                     command.CommandText = @"
@@ -144,34 +146,12 @@ namespace SJAPP.Core.Model
                             DeviceId INTEGER NOT NULL,
                             DeviceName TEXT NOT NULL,
                             Username TEXT NOT NULL,
+                            RunCount INTEGER NOT NULL,
                             Content TEXT NOT NULL,
                             Timestamp TEXT NOT NULL,
                             FOREIGN KEY (DeviceId) REFERENCES DeviceData(Id)
                         )";
                     command.ExecuteNonQuery();
-
-                    // 檢查並添加 DataValue 欄位（如果不存在）
-                    bool hasDataValue = false;
-                    command.CommandText = "PRAGMA table_info(DeviceData)";
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            if (reader["name"].ToString() == "DataValue")
-                            {
-                                hasDataValue = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!hasDataValue)
-                    {
-                        command = connection.CreateCommand();
-                        command.CommandText = "ALTER TABLE DeviceData ADD COLUMN DataValue TEXT";
-                        command.ExecuteNonQuery();
-                        Debug.WriteLine("Added DataValue column to DeviceData table.");
-                    }
 
                     // 檢查並添加 Timestamp 欄位（如果不存在）
                     bool hasTimestamp = false;
@@ -226,10 +206,19 @@ namespace SJAPP.Core.Model
                             INSERT INTO Users (Username, Password, Permissions)
                             VALUES (@username, @password, @permissions)";
 
+                        command.Parameters.AddWithValue("@username", "administrator");
+                        command.Parameters.AddWithValue("@password", "sanjet25653819");
+                        command.Parameters.
+                            AddWithValue("@permissions","ViewHome,ViewManualOperation,ViewMonitor,ViewWarning,ViewSettings,ControlDevice,All");
+                        command.ExecuteNonQuery();
+                        command.Parameters.Clear(); // <--- 清除參數
+
                         command.Parameters.AddWithValue("@username", "admin");
                         command.Parameters.AddWithValue("@password", "0000");
-                        command.Parameters.AddWithValue("@permissions", "ViewHome,ViewSettings");
+                        command.Parameters.
+                            AddWithValue("@permissions", "ViewHome,ControlDevice");
                         command.ExecuteNonQuery();
+                        command.Parameters.Clear(); // <--- 清除參數
 
                         command.Parameters.Clear();
                         command.Parameters.AddWithValue("@username", "user");
@@ -312,7 +301,10 @@ namespace SJAPP.Core.Model
                                 SlaveId = Convert.ToInt32(reader["SlaveId"]),
                                 IsOperational = Convert.ToBoolean(reader["IsOperational"]),
                                 RunCount = Convert.ToInt32(reader["RunCount"]),
-                                Timestamp = reader.IsDBNull(reader.GetOrdinal("Timestamp")) ? DateTime.MinValue : DateTime.Parse(reader["Timestamp"].ToString())
+                                // 讀取時
+                                Timestamp = reader.IsDBNull(reader.GetOrdinal("Timestamp")) 
+                                ? DateTime.MinValue
+                                : DateTime.ParseExact(reader["Timestamp"].ToString(), "o", System.Globalization.CultureInfo.InvariantCulture)
                             });
                         }
                     }
@@ -437,11 +429,12 @@ namespace SJAPP.Core.Model
                     connection.Open();
                     var command = connection.CreateCommand();
                     command.CommandText = @"
-                        INSERT INTO DeviceRecords (DeviceId, DeviceName, Username, Content, Timestamp)
-                        VALUES (@deviceId, @deviceName, @username, @content, @timestamp)";
+                        INSERT INTO DeviceRecords (DeviceId, DeviceName, Username,RunCount, Content, Timestamp)
+                        VALUES (@deviceId, @deviceName, @username,@runcount, @content, @timestamp)";
                     command.Parameters.AddWithValue("@deviceId", record.DeviceId);
                     command.Parameters.AddWithValue("@deviceName", record.DeviceName);
                     command.Parameters.AddWithValue("@username", record.Username);
+                    command.Parameters.AddWithValue("@runcount", record.RunCount);
                     command.Parameters.AddWithValue("@content", record.Content);
                     command.Parameters.AddWithValue("@timestamp", record.Timestamp.ToString("o"));
                     command.ExecuteNonQuery();
@@ -478,6 +471,7 @@ namespace SJAPP.Core.Model
                                 DeviceId = Convert.ToInt32(reader["DeviceId"]),
                                 DeviceName = reader["DeviceName"].ToString(),
                                 Username = reader["Username"].ToString(),
+                                RunCount = Convert.ToInt32(reader["RunCount"]),
                                 Content = reader["Content"].ToString(),
                                 Timestamp = DateTime.Parse(reader["Timestamp"].ToString())
                             });
@@ -516,6 +510,7 @@ namespace SJAPP.Core.Model
                                 DeviceId = Convert.ToInt32(reader["DeviceId"]),
                                 DeviceName = reader["DeviceName"].ToString(),
                                 Username = reader["Username"].ToString(),
+                                RunCount = Convert.ToInt32(reader["RunCount"]),
                                 Content = reader["Content"].ToString(),
                                 Timestamp = DateTime.Parse(reader["Timestamp"].ToString())
                             });

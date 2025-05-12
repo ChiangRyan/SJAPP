@@ -8,6 +8,8 @@ using System;
 using System.IO;
 using System.Media;
 using WMPLib;
+using AudioSwitcher.AudioApi.CoreAudio;
+using System.Diagnostics;
 
 namespace SJAPP.Core.Tool.AudioPlayer
 {
@@ -33,6 +35,7 @@ namespace SJAPP.Core.Tool.AudioPlayer
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("Audio file not found.", filePath);
 
+            _player.settings.volume = 100; // 強制設為最大音量
             _player.URL = filePath;
             _player.controls.play();
         }
