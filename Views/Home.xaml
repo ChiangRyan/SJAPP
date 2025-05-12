@@ -130,9 +130,19 @@
                         <StackPanel>
                             <!-- 設備是否正常運作的選擇控件 -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                <TextBlock Text="是否啟用:" Style="{StaticResource MyTextBlockStyle}"/>
+                                <TextBlock Text="是否啟用:" Style="{StaticResource MyTextBlockStyle}"
+                                           Visibility="{
+                                            Binding DataContext.CanControlDevice, 
+                                            RelativeSource={RelativeSource AncestorType=Page}, 
+                                            Converter={StaticResource 
+                                            BooleanToVisibilityConverter}}"/>
                                 <CheckBox IsChecked="{Binding IsOperational, UpdateSourceTrigger=PropertyChanged}" 
-                                          Style="{StaticResource MyCheckBoxStyle}"/>
+                                          Style="{StaticResource MyCheckBoxStyle}"
+                                          Visibility="{
+                                            Binding DataContext.CanControlDevice, 
+                                            RelativeSource={RelativeSource AncestorType=Page}, 
+                                            Converter={StaticResource 
+                                            BooleanToVisibilityConverter}}"/>
                             </StackPanel>
 
                             <!-- 名稱輸入 -->
@@ -145,7 +155,6 @@
                             <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding SlaveId, StringFormat=從站 ID：{0}}"/>
                             <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding RunCount, StringFormat=跑合：{0}}"/>
                             <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding Status, StringFormat=狀態：{0}}" FontWeight="Bold" Foreground="DarkSlateBlue"/>
-                            <TextBlock Style="{StaticResource MyTextBlockStyle}" Text="{Binding CanControlDevice}" />
                             <StackPanel Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Center">
                                 <Button Content="啟動" 
                                         x:Name="Start"

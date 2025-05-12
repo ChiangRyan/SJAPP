@@ -9,7 +9,7 @@ using System.IO;
 using System.Media;
 using WMPLib;
 
-namespace AudioPlayer
+namespace SJAPP.Core.Tool.AudioPlayer
 {
     /// <summary>
     /// Implements IAudioPlayer using Windows Media Player COM for broad format support.

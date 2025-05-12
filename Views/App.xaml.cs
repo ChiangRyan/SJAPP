@@ -2,6 +2,8 @@
 using SJAPP.Core.Services.Communication;
 using SJAPP.Core.ViewModel;
 using SJAPP.Core.Model;
+using SJAPP.Core.Services.AudioPlayer;
+using SJAPP.Core.Tool.AudioPlayer;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -116,7 +118,10 @@ namespace SJAPP.Views
             services.AddSingleton<SqliteDataService>(provider => new SqliteDataService(insertTestData: true));
             services.AddSingleton<PermissionService>();
             services.AddSingleton<ILoginDialogService, MainWindow>();
-
+            // Add TextToSpeech service registration
+            services.AddSingleton<ITextToSpeechService, SpeechService>();
+            // Add AudioPlayer service registration
+            services.AddSingleton<IAudioPlayerService, AudioPlayer>();
             services.AddSingleton<MainWindow>(provider =>
                 new MainWindow(provider.GetService<IServiceProvider>()));
 
@@ -132,7 +137,9 @@ namespace SJAPP.Views
                     provider.GetService<ICommunicationService>(),
                     provider.GetService<SqliteDataService>(),
                     provider.GetService<IRecordDialogService>(),
-                    provider.GetService<PermissionService>()
+                    provider.GetService<PermissionService>(),
+                    provider.GetService<ITextToSpeechService>(), // Add TTS service
+                    provider.GetService<IAudioPlayerService>() // Add player service
                 ));
 
             services.AddSingleton<IRecordDialogService, RecordService>(provider =>

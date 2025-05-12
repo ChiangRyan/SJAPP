@@ -10,6 +10,7 @@ using PropertyChanged;
 using System.Linq;
 using SJAPP.Core.Service;
 using System.Windows;
+using SJAPP.Core.Services.AudioPlayer;
 
 
 namespace SJAPP.Core.ViewModel
@@ -21,6 +22,9 @@ namespace SJAPP.Core.ViewModel
         private readonly SqliteDataService _dataService;
         private readonly PermissionService _permissionService;
         private readonly IRecordDialogService _recorddialogService;
+        private readonly ITextToSpeechService _textToSpeechService; // Add TTS service
+        private readonly IAudioPlayerService _audioPlayerService; // Add TTS service
+
         // 添加控制設備的權限屬性
         public bool CanControlDevice => _permissionService.HasPermission(Permission.ControlDevice);
 
@@ -33,17 +37,43 @@ namespace SJAPP.Core.ViewModel
 
         public ObservableCollection<DeviceModel> Devices { get; set; }
 
-        public HomeViewModel(ICommunicationService communicationService, SqliteDataService dataService, IRecordDialogService RecordDialogService, PermissionService permissionService)
+        // 添加语音播报的预设文本
+        public string StartAnnouncement { get; set; } = "啟動中，請注意安全"; // 默认启动播报文本
+        public string StopAnnouncement { get; set; } = "停止中，請注意安全"; // 默认停止播报文本
+        public bool EnableVoiceAnnouncement { get; set; } = true; // 语音播报开关
+
+        public HomeViewModel(
+            ICommunicationService communicationService,
+            SqliteDataService dataService,
+            IRecordDialogService RecordDialogService,
+            PermissionService permissionService,
+            ITextToSpeechService textToSpeechService,  // 添加文字转语音服务参数
+            IAudioPlayerService audioPlayerService // 添加音频播放器服务参数
+            )
+
         {
             _communicationService = communicationService;
             _dataService = dataService;
             _recorddialogService = RecordDialogService;
             _permissionService = permissionService;
+            _textToSpeechService = textToSpeechService; // 设置文字转语音服务
+            _audioPlayerService = audioPlayerService; // 设置音频播放器服务
+
+
+            // 設置語音速度
+            _textToSpeechService.Rate = -1;
 
             // 訂閱權限變更事件
             _permissionService.PermissionsChanged += (s, e) =>
             {
+                Debug.WriteLine($"PermissionsChanged event triggered: CanControlDevice={CanControlDevice}");
                 OnPropertyChanged(nameof(CanControlDevice));
+                // 如果失去控制權限，停止輪詢
+                if (!CanControlDevice)
+                {
+                    StopPolling();
+                    Debug.WriteLine("Polling stopped due to lack of ControlDevice permission.");
+                }
             };
 
             Devices = new ObservableCollection<DeviceModel>();
@@ -60,6 +90,42 @@ namespace SJAPP.Core.ViewModel
             _updateTimer = new Timer(5000);
             _updateTimer.Elapsed += async (s, e) => await UpdateDeviceData();
             _updateTimer.AutoReset = true;
+        }
+
+        // 播放语音提示
+        private void AnnounceDevice(DeviceModel device, string action)
+        {
+            if (!EnableVoiceAnnouncement) return;
+
+            try
+            {
+                string announcement = $"設備 {device.Name} {action}";
+                _textToSpeechService.Speak(announcement);
+                Debug.WriteLine($"语音播报: {announcement}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"语音播报错误: {ex.Message}");
+                // 不向用户显示错误，保持程序继续运行
+            }
+        }
+
+
+        // 播放音频提示
+        private void PlayAudioAnnouncement(string action)
+        {
+            if (!EnableVoiceAnnouncement) return;
+            try
+            {
+                string audioFilePath = @"C:\Users\user1\Desktop\展機機聯網\SJAPP\bin\Release\SquidGame1.mp3";
+                _audioPlayerService.Play(audioFilePath);
+                Debug.WriteLine($"音频播报: {audioFilePath}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"音频播报错误: {ex.Message}");
+                // 不向用户显示错误，保持程序继续运行
+            }
         }
 
         private void LoadDevicesFromDatabase()
@@ -254,6 +320,10 @@ namespace SJAPP.Core.ViewModel
                 Debug.WriteLine("Update timer stopped for ExecuteStart.");
                 await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 1, 6);
                 await UpdateDeviceData();
+
+                // 播报设备启动
+                AnnounceDevice(device, StartAnnouncement);
+                PlayAudioAnnouncement(StartAnnouncement);
             }
             catch (Exception ex)
             {
@@ -283,6 +353,9 @@ namespace SJAPP.Core.ViewModel
                 Debug.WriteLine("Update timer stopped for ExecuteStop.");
                 await _communicationService.WriteModbusAsync(device.IpAddress, device.SlaveId, _controlAddress, 0, 6);
                 await UpdateDeviceData();
+
+                // 播报设备停止
+                AnnounceDevice(device, StopAnnouncement);
             }
             catch (Exception ex)
             {
@@ -305,6 +378,13 @@ namespace SJAPP.Core.ViewModel
 
         public async void StartPolling()
         {
+            if (!CanControlDevice)
+            {
+                Debug.WriteLine("StartPolling skipped: User lacks ControlDevice permission.");
+                return;
+            }
+
+            Debug.WriteLine("StartPolling initiated due to page load.");
             await UpdateDeviceData();
             if (!_updateTimer.Enabled)
             {

@@ -23,8 +23,7 @@ namespace SJAPP.Views
 
         private void Home_Loaded(object sender, RoutedEventArgs e)
         {
-            // 當頁面載入時，啟動輪巡（如果需要）
-            _viewModel.StartPolling();
+            _viewModel.StartPolling();// 當頁面載入時，啟動輪巡（如果需要）
             System.Diagnostics.Debug.WriteLine("Update timer started due to page load.");
         }
 
