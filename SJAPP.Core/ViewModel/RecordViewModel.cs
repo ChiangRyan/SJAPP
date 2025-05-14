@@ -122,10 +122,10 @@ namespace SJAPP.Core.ViewModel
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    Debug.WriteLine($"正在刪除記錄 ID: {SelectedRecord.Id}");
+                    Debug.WriteLine($"正在刪除記錄 ID: {SelectedRecord.Id}，設備 ID: {_deviceId}");
 
-                    // 從資料庫中刪除
-                    bool success = _dataService.DeleteDeviceRecord(SelectedRecord.Id);
+                    // 從資料庫中刪除，傳遞 deviceId 和 recordId
+                    bool success = _dataService.DeleteDeviceRecord(_deviceId, SelectedRecord.Id);
 
                     if (success)
                     {
@@ -147,6 +147,7 @@ namespace SJAPP.Core.ViewModel
                 MessageBox.Show($"刪除記錄時發生錯誤: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         private void RefreshRecords()
         {
             try

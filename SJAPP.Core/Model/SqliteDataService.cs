@@ -137,21 +137,21 @@ namespace SJAPP.Core.Model
                             Timestamp TEXT NOT NULL
                         )";
                     command.ExecuteNonQuery();
-                    //command.Parameters.Clear(); // <--- 清除參數
 
-                    // 創建 DeviceRecords 表
-                    command.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS DeviceRecords (
-                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            DeviceId INTEGER NOT NULL,
-                            DeviceName TEXT NOT NULL,
-                            Username TEXT NOT NULL,
-                            RunCount INTEGER NOT NULL,
-                            Content TEXT NOT NULL,
-                            Timestamp TEXT NOT NULL,
-                            FOREIGN KEY (DeviceId) REFERENCES DeviceData(Id)
-                        )";
-                    command.ExecuteNonQuery();
+                    // 為每個設備創建單獨的記錄表
+                    for (int i = 1; i <= 12; i++)
+                    {
+                        command.CommandText = $@"
+                            CREATE TABLE IF NOT EXISTS DeviceRecords_{i} (
+                                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                DeviceName TEXT NOT NULL,
+                                Username TEXT NOT NULL,
+                                RunCount INTEGER NOT NULL,
+                                Content TEXT NOT NULL,
+                                Timestamp TEXT NOT NULL
+                            )";
+                        command.ExecuteNonQuery();
+                    }
 
                     // 檢查並添加 Timestamp 欄位（如果不存在）
                     bool hasTimestamp = false;
@@ -368,15 +368,14 @@ namespace SJAPP.Core.Model
                     connection.Open();
                     var command = connection.CreateCommand();
                     command.CommandText = @"
-                        INSERT OR REPLACE INTO DeviceData (Id, Name, IpAddress, SlaveId, IsOperational, RunCount, DataValue, Timestamp)
-                        VALUES (@id, @name, @ipAddress, @slaveId, @isOperational, @runCount, @dataValue, @timestamp)";
+                        INSERT OR REPLACE INTO DeviceData (Id, Name, IpAddress, SlaveId, IsOperational, RunCount, Timestamp)
+                        VALUES (@id, @name, @ipAddress, @slaveId, @isOperational, @runCount, @timestamp)";
                     command.Parameters.AddWithValue("@id", deviceIndex + 1);
                     command.Parameters.AddWithValue("@name", name);
                     command.Parameters.AddWithValue("@ipAddress", ipAddress);
                     command.Parameters.AddWithValue("@slaveId", slaveId);
                     command.Parameters.AddWithValue("@isOperational", isOperational ? 1 : 0);
                     command.Parameters.AddWithValue("@runCount", runCount);
-                    command.Parameters.AddWithValue("@dataValue", "");
                     command.Parameters.AddWithValue("@timestamp", DateTime.Now.ToString("o"));
                     command.ExecuteNonQuery();
                     Debug.WriteLine("Device data saved successfully.");
@@ -422,23 +421,26 @@ namespace SJAPP.Core.Model
                 {
                     throw new InvalidOperationException($"設備 ID {record.DeviceId} 不存在於 DeviceData 表中。");
                 }
-                Debug.WriteLine($"Adding device record for device: {record.DeviceName}");
 
                 using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
                 {
                     connection.Open();
-                    var command = connection.CreateCommand();
-                    command.CommandText = @"
-                        INSERT INTO DeviceRecords (DeviceId, DeviceName, Username,RunCount, Content, Timestamp)
-                        VALUES (@deviceId, @deviceName, @username,@runcount, @content, @timestamp)";
-                    command.Parameters.AddWithValue("@deviceId", record.DeviceId);
-                    command.Parameters.AddWithValue("@deviceName", record.DeviceName);
-                    command.Parameters.AddWithValue("@username", record.Username);
-                    command.Parameters.AddWithValue("@runcount", record.RunCount);
-                    command.Parameters.AddWithValue("@content", record.Content);
-                    command.Parameters.AddWithValue("@timestamp", record.Timestamp.ToString("o"));
-                    command.ExecuteNonQuery();
-                    Debug.WriteLine("Device record added successfully.");
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        var command = connection.CreateCommand();
+                        command.CommandText = $@"
+                            INSERT INTO DeviceRecords_{record.DeviceId} (DeviceName, Username, RunCount, Content, Timestamp)
+                            VALUES (@deviceName, @username, @runcount, @content, @timestamp)";
+                        command.Parameters.AddWithValue("@deviceName", record.DeviceName);
+                        command.Parameters.AddWithValue("@username", record.Username);
+                        command.Parameters.AddWithValue("@runcount", record.RunCount);
+                        command.Parameters.AddWithValue("@content", record.Content);
+                        command.Parameters.AddWithValue("@timestamp", record.Timestamp.ToString("o"));
+                        command.ExecuteNonQuery();
+
+                        transaction.Commit();
+                        Debug.WriteLine("Device record added successfully.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -459,8 +461,7 @@ namespace SJAPP.Core.Model
                 {
                     connection.Open();
                     var command = connection.CreateCommand();
-                    command.CommandText = "SELECT * FROM DeviceRecords WHERE DeviceId = @deviceId ORDER BY Timestamp DESC";
-                    command.Parameters.AddWithValue("@deviceId", deviceId);
+                    command.CommandText = $"SELECT * FROM DeviceRecords_{deviceId} ORDER BY Timestamp DESC";
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
@@ -468,12 +469,12 @@ namespace SJAPP.Core.Model
                             records.Add(new DeviceRecord
                             {
                                 Id = Convert.ToInt32(reader["Id"]),
-                                DeviceId = Convert.ToInt32(reader["DeviceId"]),
+                                DeviceId = deviceId, // 手動設置 DeviceId
                                 DeviceName = reader["DeviceName"].ToString(),
                                 Username = reader["Username"].ToString(),
                                 RunCount = Convert.ToInt32(reader["RunCount"]),
                                 Content = reader["Content"].ToString(),
-                                Timestamp = DateTime.Parse(reader["Timestamp"].ToString())
+                                Timestamp = DateTime.ParseExact(reader["Timestamp"].ToString(), "o", System.Globalization.CultureInfo.InvariantCulture)
                             });
                         }
                     }
@@ -498,22 +499,25 @@ namespace SJAPP.Core.Model
                 using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
                 {
                     connection.Open();
-                    var command = connection.CreateCommand();
-                    command.CommandText = "SELECT * FROM DeviceRecords ORDER BY Timestamp DESC";
-                    using (var reader = command.ExecuteReader())
+                    for (int deviceId = 1; deviceId <= 12; deviceId++)
                     {
-                        while (reader.Read())
+                        var command = connection.CreateCommand();
+                        command.CommandText = $"SELECT * FROM DeviceRecords_{deviceId} ORDER BY Timestamp DESC";
+                        using (var reader = command.ExecuteReader())
                         {
-                            records.Add(new DeviceRecord
+                            while (reader.Read())
                             {
-                                Id = Convert.ToInt32(reader["Id"]),
-                                DeviceId = Convert.ToInt32(reader["DeviceId"]),
-                                DeviceName = reader["DeviceName"].ToString(),
-                                Username = reader["Username"].ToString(),
-                                RunCount = Convert.ToInt32(reader["RunCount"]),
-                                Content = reader["Content"].ToString(),
-                                Timestamp = DateTime.Parse(reader["Timestamp"].ToString())
-                            });
+                                records.Add(new DeviceRecord
+                                {
+                                    Id = Convert.ToInt32(reader["Id"]),
+                                    DeviceId = deviceId,
+                                    DeviceName = reader["DeviceName"].ToString(),
+                                    Username = reader["Username"].ToString(),
+                                    RunCount = Convert.ToInt32(reader["RunCount"]),
+                                    Content = reader["Content"].ToString(),
+                                    Timestamp = DateTime.ParseExact(reader["Timestamp"].ToString(), "o", System.Globalization.CultureInfo.InvariantCulture)
+                                });
+                            }
                         }
                     }
                 }
@@ -527,16 +531,17 @@ namespace SJAPP.Core.Model
             return records;
         }
 
-        public bool DeleteDeviceRecord(int recordId)
+
+        public bool DeleteDeviceRecord(int deviceId, int recordId)
         {
             try
             {
-                Debug.WriteLine($"Deleting device record with ID: {recordId}");
+                Debug.WriteLine($"Deleting device record with ID: {recordId} for device: {deviceId}");
                 using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
                 {
                     connection.Open();
                     var command = connection.CreateCommand();
-                    command.CommandText = "DELETE FROM DeviceRecords WHERE Id = @id";
+                    command.CommandText = $"DELETE FROM DeviceRecords_{deviceId} WHERE Id = @id";
                     command.Parameters.AddWithValue("@id", recordId);
                     int rowsAffected = command.ExecuteNonQuery();
                     Debug.WriteLine($"DeleteDeviceRecord: {rowsAffected} rows affected");
