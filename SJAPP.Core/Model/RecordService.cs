@@ -1,9 +1,9 @@
 ﻿using SJAPP.Core.Service;
-using SJAPP.Core.Views;
-using SJAPP.Views;
 using System;
 using System.Windows;
 using System.Diagnostics;
+using SJAPP.Core.Views;
+
 namespace SJAPP.Core.Model
 {
     public class RecordService : IRecordDialogService

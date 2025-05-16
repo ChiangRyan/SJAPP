@@ -3,7 +3,7 @@ using SJAPP.Core.ViewModel;
 using System.Windows;
 using System.Diagnostics;
 
-namespace SJAPP.Views
+namespace SJAPP.Core.Views
 {
     public partial class RecordView : Window
     {

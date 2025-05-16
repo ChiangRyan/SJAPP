@@ -174,6 +174,7 @@ namespace SJAPP.Core.ViewModel
             OnPropertyChanged(nameof(CanViewWarning));
             OnPropertyChanged(nameof(CanViewSettings));
             OnPropertyChanged(nameof(CanControlDevice));
+            OnPropertyChanged(nameof(CanAll));
             System.Diagnostics.Debug.WriteLine("Permission properties updated.");
         }
 
