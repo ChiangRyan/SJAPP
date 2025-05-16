@@ -1,4 +1,4 @@
-﻿<Window x:Class="SJAPP.Core.Views.LoginWindow"
+﻿<Window x:Class="SJAPP.Core.Views.Windows.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="登入" Height="320" Width="400"
